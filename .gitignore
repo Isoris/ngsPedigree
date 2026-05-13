@@ -1,0 +1,43 @@
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Temp / backup
+*.tmp
+*.bak
+*.log
+
+# Genomics intermediates (kept-out; commit fixtures explicitly if needed)
+*.bam
+*.bai
+*.cram
+*.crai
+*.vcf
+*.vcf.gz
+*.vcf.gz.tbi
+*.bcf
+*.beagle.gz
+*.glf.gz
+*.mafs.gz
+*.arg
+*.geno.gz
+
+# Local SLURM / HPC scratch
+slurm-*.out
+*.e[0-9]*
+*.o[0-9]*

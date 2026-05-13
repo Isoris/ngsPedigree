@@ -1,0 +1,1731 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Relatedness Atlas — Family / Individual Evidence Hub</title>
+<style>
+  /* ===========================================================================
+     Relatedness Atlas v0.1 — sibling deliverable to Population_atlas.html and
+     Inversion_atlas.html. Same CSS variable system, same light/dark/academic
+     themes, same monospace numerics, same header/dropdown chrome.
+
+     Atlas brand color: violet/indigo (distinct from Inversion=blue,
+     Diversity=green, Genome=orange, Population=yellow). The blues used in
+     the network panel for "possible PO" edges are unrelated to brand —
+     they're a network legend signal, not the atlas accent.
+
+     This page is the consumer of ngsPedigree's outputs:
+       Stage 1 → pairwise_relationship_classification.tsv + family_hub_roster.tsv
+       Stage 2 → per-chromosome QC columns
+       Stage 3 → chromosome inheritance map
+     Plus an inversion karyotype TSV from the Inversion Atlas / scrubber.
+
+     Standalone — no scrubber dependencies. Demo data is baked in so the
+     page renders meaningfully on first open; production loads via the
+     status-pill loaders at the top.
+     =========================================================================== */
+  :root {
+    --bg: #0e1116;
+    --panel: #151a22;
+    --panel-2: #1c2330;
+    --panel-3: #2a3242;
+    --ink: #e7edf3;
+    --ink-dim: #8a94a3;
+    --ink-dimmer: #5a6472;
+    /* Relatedness Atlas accent: indigo/violet. Visually distinct from
+       Inversion (blue), Diversity (green), Genome (orange), Population
+       (yellow). Stays calm in light + academic themes. */
+    --accent: #8a7fff;
+    --accent-2: #4fa3ff;
+    --good: #5fd49a;
+    --bad: #e0555c;
+    --warn: #e8c44c;
+    --neutral: #8a94a3;
+    /* Sub-themes for content stripes (used sparingly): */
+    --rel-net:    #8a7fff;   /* network panel */
+    --rel-karyo:  #b69dff;   /* karyotype panel */
+    --rel-inv:    #6f64db;   /* inversion table */
+    --rel-mend:   #5b50c9;   /* Mendelian check */
+    --rel-tree:   #a89dff;   /* population browser tree */
+    /* Network edge colors — fixed across themes for legend continuity. */
+    --edge-strong-po:  #1a1f26;   /* black-ish */
+    --edge-possible-po:#3b82f6;   /* azure */
+    --edge-ambig:      #f59e0b;   /* amber, dashed */
+    --edge-mend-conf:  #dc2626;   /* red, dashed */
+    --rule: #2a3242;
+    --mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  html[data-theme="light"] {
+    --bg:           #fafbfc;
+    --panel:        #ffffff;
+    --panel-2:      #f5f7fa;
+    --panel-3:      #e3e7ec;
+    --ink:          #1a1f26;
+    --ink-dim:      #5b6573;
+    --ink-dimmer:   #98a0ac;
+    --rule:         #d8dde3;
+    --accent:       #6366f1;
+    --accent-2:     #2563eb;
+    --good:         #16a34a;
+    --bad:          #dc2626;
+    --warn:         #ca8a04;
+    --neutral:      #5b6573;
+    --rel-net:      #6366f1;
+    --rel-karyo:    #818cf8;
+    --rel-inv:      #4f46e5;
+    --rel-mend:     #4338ca;
+    --rel-tree:     #7c84e8;
+    --edge-strong-po:  #0f172a;
+    --edge-possible-po:#2563eb;
+    --edge-ambig:      #d97706;
+    --edge-mend-conf:  #b91c1c;
+  }
+  html[data-theme="academic"] {
+    --bg:           #f7f5ef;
+    --panel:        #fefcf6;
+    --panel-2:      #f1ecdf;
+    --panel-3:      #e5dfd1;
+    --ink:          #2b2d31;
+    --ink-dim:      #5e6168;
+    --ink-dimmer:   #97999f;
+    --rule:         #c9c4b6;
+    --accent:       #5848a8;
+    --accent-2:     #2c5d8c;
+    --good:         #4f7a4d;
+    --bad:          #8c2f2f;
+    --warn:         #a87e3c;
+    --neutral:      #6e6f74;
+    --rel-net:      #5848a8;
+    --rel-karyo:    #7665c2;
+    --rel-inv:      #443487;
+    --rel-mend:     #2f256e;
+    --rel-tree:     #6f5fc4;
+    --edge-strong-po:  #2b2d31;
+    --edge-possible-po:#2c5d8c;
+    --edge-ambig:      #a87e3c;
+    --edge-mend-conf:  #8c2f2f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--mono);
+         font-size: 13px; line-height: 1.5;
+         display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ── Header (mirrors Population_atlas.html exactly) ─────────────────────── */
+  header { padding: 10px 22px; border-bottom: 1px solid var(--rule);
+           display: flex; align-items: baseline; gap: 18px; height: 44px;
+           background: var(--panel); }
+  header h1 { font-size: 16px; font-weight: 500; margin: 0; letter-spacing: 0.02em; }
+  header .meta { color: var(--ink-dim); font-family: var(--mono); font-size: 11px;
+                 flex-shrink: 1; min-width: 0; overflow: hidden;
+                 text-overflow: ellipsis; white-space: nowrap; }
+  header .meta b { color: var(--ink); font-weight: 500; }
+  header #atlasModeIndicator { position: relative; align-self: center; margin: 0 8px;
+                                font-family: var(--mono); font-size: 10.5px;
+                                flex-shrink: 0; }
+  header #atlasActiveBtn { flex-shrink: 0; }
+  header #atlasActiveBtn:hover { background: rgba(138, 127, 255, 0.30) !important;
+                                  border-color: rgba(138, 127, 255, 0.85) !important; }
+  header #atlasModeIndicator:hover #atlasDropdown,
+  header #atlasModeIndicator:focus-within #atlasDropdown { display: block !important; }
+  header .atlas-row:hover { color: var(--ink) !important; }
+  header .atlas-row[data-color="blue"]:hover    { background: rgba(64, 144, 220, 0.18) !important; }
+  header .atlas-row[data-color="green"]:hover   { background: rgba(72, 200, 120, 0.18) !important; }
+  header .atlas-row[data-color="orange"]:hover  { background: rgba(228, 138, 60, 0.18) !important; }
+  header .atlas-row[data-color="yellow"]:hover  { background: rgba(232, 196, 76, 0.18) !important; }
+  header .atlas-row[data-color="violet"]:hover  { background: rgba(138, 127, 255, 0.18) !important; }
+  header #themeToggleBtn {
+    margin-left: auto; align-self: center;
+    background: var(--panel-2); border: 1px solid var(--rule); color: var(--ink);
+    padding: 4px 12px; font-family: var(--mono); font-size: 11px;
+    border-radius: 3px; cursor: pointer; line-height: 1;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  header #themeToggleBtn:hover {
+    background: var(--panel-3); border-color: var(--accent);
+  }
+  header #helpBtn {
+    align-self: center;
+    background: var(--panel-2); border: 1px solid var(--rule); color: var(--ink-dim);
+    padding: 4px 9px; font-family: var(--mono); font-size: 11px;
+    border-radius: 3px; cursor: pointer; line-height: 1;
+    margin-left: 6px; flex-shrink: 0;
+  }
+  header #helpBtn:hover { color: var(--ink); border-color: var(--accent); }
+
+  /* ── Status pills row (the "loaded files" toolbar from the mockup) ──────── */
+  #pillBar { display: flex; gap: 10px; padding: 10px 22px;
+             background: var(--panel); border-bottom: 1px solid var(--rule);
+             align-items: stretch; flex-shrink: 0; flex-wrap: wrap; }
+  .pill {
+    background: var(--panel-2); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 6px 10px;
+    display: flex; flex-direction: column; gap: 2px;
+    font-family: var(--mono); font-size: 10.5px; min-width: 0;
+    cursor: pointer; transition: border-color 80ms;
+  }
+  .pill:hover { border-color: var(--accent); }
+  .pill.loaded { border-color: var(--good); }
+  .pill .pill-label {
+    color: var(--ink-dim); font-size: 9px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .pill .pill-label .pill-icon {
+    width: 10px; height: 10px;
+    display: inline-block;
+  }
+  .pill .pill-label.loaded::before {
+    content: "✓"; color: var(--good); font-weight: 600;
+    margin-right: 3px;
+  }
+  .pill .pill-value {
+    color: var(--ink); font-size: 10.5px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    max-width: 220px;
+  }
+  .pill.unloaded .pill-value { color: var(--ink-dimmer); font-style: italic; }
+  /* Ancestry palette pill: shows colored dots inline */
+  .pill .ancestry-dots {
+    display: inline-flex; gap: 4px; margin-top: 2px;
+  }
+  .pill .ancestry-dots .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+  }
+
+  /* ── Breadcrumb row ───────────────────────────────────────────────────── */
+  #breadcrumb { padding: 8px 22px; background: var(--panel);
+                border-bottom: 1px solid var(--rule); flex-shrink: 0;
+                font-family: var(--mono); font-size: 10.5px; color: var(--ink-dim); }
+  #breadcrumb a { color: var(--ink-dim); text-decoration: none; padding: 0 4px; }
+  #breadcrumb a:hover { color: var(--ink); }
+  #breadcrumb .sep { color: var(--ink-dimmer); margin: 0 2px; }
+  #breadcrumb .current { color: var(--ink); font-weight: 500; }
+  #breadcrumb .home-icon { display: inline-block; padding: 0 4px;
+                            color: var(--ink-dim); }
+
+  /* ── Main 3-column body layout ─────────────────────────────────────────── */
+  #body { display: grid;
+          grid-template-columns: 280px 1fr 360px;
+          gap: 12px; padding: 12px 22px;
+          flex: 1; min-height: 0;
+          background: var(--bg); }
+  @media (max-width: 1280px) {
+    #body { grid-template-columns: 240px 1fr 320px; }
+  }
+  @media (max-width: 1024px) {
+    #body { grid-template-columns: 1fr; }
+    #col-left, #col-right { max-height: none; }
+  }
+
+  .col {
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 4px;
+    display: flex; flex-direction: column;
+    min-width: 0;     /* allow grid item to shrink */
+  }
+  .col-section {
+    border-bottom: 1px solid var(--rule);
+    flex-shrink: 0;
+  }
+  .col-section:last-child { border-bottom: none; }
+  .col-section-header {
+    padding: 9px 14px; display: flex; align-items: center;
+    justify-content: space-between;
+    font-size: 11px; font-weight: 600; color: var(--ink);
+    letter-spacing: 0.02em;
+    background: var(--panel-2); border-bottom: 1px solid var(--rule);
+  }
+  .col-section-header .col-section-toggle {
+    color: var(--ink-dim); cursor: pointer;
+    background: none; border: none; padding: 0;
+    font-family: var(--mono); font-size: 14px;
+    line-height: 1;
+  }
+  .col-section-header .col-section-toggle:hover { color: var(--ink); }
+  .col-section.collapsed .col-section-body { display: none; }
+  .col-section-body { padding: 10px 14px; }
+
+  /* ── Population Browser (left column tree) ─────────────────────────────── */
+  #col-left { overflow: hidden; }
+  #col-left .col-section {
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  #col-left .col-section.tree-section { flex: 1 1 auto; min-height: 0; }
+  #col-left .col-section.tree-section .col-section-body {
+    flex: 1; overflow-y: auto; padding: 6px 10px;
+  }
+  #col-left .search {
+    margin-bottom: 8px; position: relative;
+  }
+  #col-left .search input {
+    width: 100%; padding: 6px 10px 6px 28px;
+    background: var(--panel-2); border: 1px solid var(--rule);
+    color: var(--ink); border-radius: 3px;
+    font-family: var(--mono); font-size: 11px;
+  }
+  #col-left .search input:focus {
+    outline: none; border-color: var(--accent);
+  }
+  #col-left .search::before {
+    content: "⌕"; position: absolute; left: 10px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--ink-dim); pointer-events: none; font-size: 13px;
+  }
+  /* Tree styles */
+  .tree { font-size: 11px; user-select: none; }
+  .tree-node { line-height: 1.7; cursor: pointer;
+               display: flex; align-items: center; gap: 6px;
+               padding: 1px 4px; border-radius: 3px;
+               white-space: nowrap; }
+  .tree-node:hover { background: var(--panel-2); }
+  .tree-node.selected { background: rgba(138, 127, 255, 0.18);
+                        color: var(--ink); font-weight: 500; }
+  html[data-theme="light"] .tree-node.selected { background: rgba(99, 102, 241, 0.13); }
+  html[data-theme="academic"] .tree-node.selected { background: rgba(88, 72, 168, 0.14); }
+  .tree-toggle {
+    display: inline-block; width: 12px; text-align: center;
+    color: var(--ink-dimmer); font-size: 10px;
+    transition: transform 0.1s;
+  }
+  .tree-toggle.expanded { transform: rotate(90deg); }
+  .tree-toggle.empty { color: transparent; }
+  .tree-icon {
+    display: inline-block; width: 16px; text-align: center;
+    color: var(--ink-dim); font-size: 11px;
+    flex-shrink: 0;
+  }
+  .tree-icon.population { color: var(--rel-tree); }
+  .tree-icon.family    { color: var(--rel-tree); }
+  .tree-icon.hub       { color: var(--accent); }
+  .tree-icon.individual{ color: var(--ink-dim); }
+  .tree-icon.chromosome{ color: var(--ink-dimmer); }
+  .tree-label {
+    flex: 1; min-width: 0; overflow: hidden;
+    text-overflow: ellipsis; color: var(--ink);
+  }
+  .tree-node.dimmed .tree-label { color: var(--ink-dim); }
+  .tree-count {
+    font-size: 9.5px; color: var(--ink-dim);
+    background: var(--panel-2); padding: 1px 6px; border-radius: 8px;
+    border: 1px solid var(--rule); flex-shrink: 0;
+  }
+  .tree-children { padding-left: 16px; }
+  .tree-children.collapsed { display: none; }
+
+  /* ── Population Summary ────────────────────────────────────────────────── */
+  .pop-summary {
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 4px 10px; font-size: 10.5px; padding: 4px 0;
+  }
+  .pop-summary-label { color: var(--ink-dim); }
+  .pop-summary-value { color: var(--ink); font-weight: 500;
+                       font-variant-numeric: tabular-nums; text-align: right; }
+  .pop-summary-row { display: contents; }
+  .pop-summary-row.divider {
+    border-top: 1px dashed var(--rule);
+    padding-top: 2px; margin-top: 2px;
+  }
+  .legend-line {
+    display: inline-block; width: 26px; height: 0;
+    border-top: 2px solid var(--edge-strong-po);
+    vertical-align: middle; margin-right: 4px;
+  }
+  .legend-line.possible { border-top-color: var(--edge-possible-po); }
+  .legend-line.ambig    { border-top-color: var(--edge-ambig);
+                          border-top-style: dashed; }
+  .legend-line.thin     { border-top-width: 1px; }
+  .legend-icon { display: inline-block; vertical-align: middle;
+                 margin-right: 4px; font-size: 12px; }
+  .legend-icon.warn { color: var(--warn); }
+  .legend-icon.fail { color: var(--bad); }
+
+  /* ── Center column: Evidence Hub ───────────────────────────────────────── */
+  #col-center { overflow: hidden; }
+  #col-center .center-header {
+    padding: 10px 16px; display: flex; align-items: center;
+    justify-content: space-between; gap: 12px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--panel-2);
+  }
+  #col-center .center-title {
+    font-size: 13px; font-weight: 600; color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+  #col-center .center-actions {
+    display: flex; gap: 6px;
+  }
+  #col-center .center-actions button {
+    background: none; border: 1px solid var(--rule);
+    color: var(--ink-dim); font-family: var(--mono); font-size: 12px;
+    padding: 3px 8px; border-radius: 3px; cursor: pointer;
+    line-height: 1.2;
+  }
+  #col-center .center-actions button:hover {
+    color: var(--ink); border-color: var(--accent);
+  }
+  /* Sub-tabs (Network / Karyotypes / Inversions / Mendelian) */
+  #subTabBar {
+    display: flex; height: 32px; padding: 0 16px;
+    background: var(--panel); border-bottom: 1px solid var(--rule);
+    align-items: stretch; gap: 0;
+  }
+  #subTabBar button[data-subtab] {
+    background: none; border: none; color: var(--ink-dim);
+    font-family: var(--mono); font-size: 11px; padding: 0 14px;
+    cursor: pointer; letter-spacing: 0.04em;
+    border-bottom: 2px solid transparent;
+    transition: color 0.1s, border-color 0.1s;
+  }
+  #subTabBar button[data-subtab]:hover { color: var(--ink); }
+  #subTabBar button[data-subtab].active {
+    color: var(--ink); border-bottom-color: var(--accent);
+    background: linear-gradient(to bottom,
+      rgba(138, 127, 255, 0.16) 0%,
+      rgba(138, 127, 255, 0.06) 50%,
+      rgba(138, 127, 255, 0.00) 100%);
+  }
+  html[data-theme="light"] #subTabBar button[data-subtab].active {
+    background: linear-gradient(to bottom,
+      rgba(99, 102, 241, 0.14) 0%,
+      rgba(99, 102, 241, 0.05) 50%,
+      rgba(99, 102, 241, 0.00) 100%);
+  }
+  #subTabBar .sub-tab-spacer { flex: 1; }
+  #subTabBar .chr-filter {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--ink-dim); font-size: 10.5px;
+    padding: 0 8px;
+  }
+  #subTabBar .chr-filter select {
+    background: var(--panel-2); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 3px 6px; font-family: var(--mono); font-size: 10.5px;
+  }
+
+  .subpage { display: none; padding: 14px 16px; flex: 1; overflow-y: auto;
+             min-height: 0; }
+  .subpage.active { display: block; }
+
+  /* ── Network panel ─────────────────────────────────────────────────────── */
+  #networkPanel { position: relative; }
+  #networkSvg {
+    width: 100%; height: 360px;
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 3px;
+  }
+  /* Legend overlay on the network */
+  .net-legend {
+    position: absolute; top: 12px; right: 12px;
+    background: var(--panel-2); border: 1px solid var(--rule);
+    border-radius: 3px; padding: 8px 10px;
+    font-size: 10px; line-height: 1.7;
+    z-index: 10;
+  }
+  .net-legend .lg-row {
+    display: flex; align-items: center; gap: 8px;
+    color: var(--ink-dim);
+  }
+  .net-legend .lg-line {
+    display: inline-block; width: 28px; height: 0;
+    border-top: 2px solid currentColor;
+  }
+  .net-legend .lg-line.dashed { border-top-style: dashed; }
+  .net-legend .lg-strong-po  { color: var(--edge-strong-po); }
+  .net-legend .lg-possible-po{ color: var(--edge-possible-po); }
+  .net-legend .lg-ambig      { color: var(--edge-ambig); }
+  .net-legend .lg-conflict   { color: var(--edge-mend-conf); }
+
+  .net-help {
+    position: absolute; bottom: 12px; right: 12px;
+    color: var(--ink-dimmer); font-size: 9.5px; line-height: 1.4;
+    text-align: right; max-width: 200px;
+  }
+
+  /* SVG node + edge styles (set via CSS so themes apply) */
+  .net-edge { stroke-linecap: round; fill: none; }
+  .net-edge.strong-po   { stroke: var(--edge-strong-po);  stroke-width: 2.4px; }
+  .net-edge.possible-po { stroke: var(--edge-possible-po);stroke-width: 1.6px; }
+  .net-edge.ambig       { stroke: var(--edge-ambig);      stroke-width: 1.6px;
+                          stroke-dasharray: 6 4; }
+  .net-edge.conflict    { stroke: var(--edge-mend-conf);  stroke-width: 1.6px;
+                          stroke-dasharray: 4 3; }
+  .net-node circle {
+    stroke: var(--rule); stroke-width: 1.5px;
+    fill: var(--panel-2);
+    cursor: pointer;
+    transition: fill 0.1s, stroke 0.1s;
+  }
+  .net-node:hover circle { stroke: var(--accent); }
+  .net-node.selected circle {
+    fill: var(--accent); stroke: var(--accent);
+  }
+  .net-node text {
+    font-family: var(--mono); font-size: 10px;
+    fill: var(--ink-dim); pointer-events: none;
+    text-anchor: middle;
+  }
+
+  /* ── Karyotype matrix ──────────────────────────────────────────────────── */
+  .data-table {
+    width: 100%; border-collapse: collapse;
+    font-family: var(--mono); font-size: 10.5px;
+    background: var(--panel-2);
+    border: 1px solid var(--rule); border-radius: 4px;
+    overflow: hidden;
+  }
+  .data-table th {
+    text-align: left; padding: 7px 10px; font-weight: 600;
+    color: var(--ink); border-bottom: 1px solid var(--rule);
+    background: var(--panel-3); font-size: 9.5px; letter-spacing: 0.04em;
+    text-transform: uppercase; white-space: nowrap;
+  }
+  .data-table td {
+    padding: 6px 10px; vertical-align: middle;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink); white-space: nowrap;
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:hover td { background: var(--panel-3); }
+  .data-table .num { font-variant-numeric: tabular-nums; text-align: right; }
+  .data-table .sample-id { font-weight: 600; }
+
+  /* Karyotype cell coloring — matches mockup */
+  .kt-cell {
+    display: inline-block; min-width: 40px; text-align: center;
+    padding: 2px 6px; border-radius: 2px;
+    font-family: var(--mono); font-size: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  .kt-cell.kt-00 { background: rgba(96, 165, 250, 0.12); color: var(--ink); }
+  .kt-cell.kt-01 { background: rgba(94, 197, 153, 0.13); color: var(--ink); }
+  .kt-cell.kt-11 { background: rgba(232, 196, 76, 0.20); color: var(--ink); }
+  .kt-cell.kt-na { background: rgba(124, 100, 255, 0.10); color: var(--ink-dim);
+                    font-style: italic; }
+  html[data-theme="light"] .kt-cell.kt-00 { background: rgba(37, 99, 235, 0.08); }
+  html[data-theme="light"] .kt-cell.kt-01 { background: rgba(22, 163, 74, 0.10); }
+  html[data-theme="light"] .kt-cell.kt-11 { background: rgba(202, 138, 4, 0.13); }
+  html[data-theme="light"] .kt-cell.kt-na { background: rgba(99, 102, 241, 0.06); color: var(--ink-dimmer); }
+
+  /* Ancestry stripe (small horizontal stacked bar in the Karyotypes table) */
+  .anc-stripe {
+    display: inline-block; height: 10px; width: 90px;
+    border-radius: 2px; overflow: hidden;
+    border: 1px solid var(--rule); vertical-align: middle;
+  }
+  .anc-stripe > span {
+    display: inline-block; height: 100%; vertical-align: top;
+  }
+
+  /* Karyotype legend */
+  .kt-legend {
+    display: flex; gap: 16px; margin-top: 8px;
+    font-size: 9.5px; color: var(--ink-dim);
+  }
+  .kt-legend .item { display: flex; align-items: center; gap: 5px; }
+
+  /* ── Inversion candidates table ──────────────────────────────────────── */
+  .status-pill-cell {
+    display: inline-block; padding: 2px 8px; border-radius: 2px;
+    font-size: 9.5px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .status-pill-cell.pass { background: rgba(95, 212, 154, 0.15); color: var(--good); }
+  .status-pill-cell.warn { background: rgba(232, 196, 76, 0.18); color: var(--warn); }
+  .status-pill-cell.fail { background: rgba(224, 85, 92, 0.16); color: var(--bad); }
+  html[data-theme="light"] .status-pill-cell.pass { background: rgba(22, 163, 74, 0.12); }
+  html[data-theme="light"] .status-pill-cell.warn { background: rgba(202, 138, 4, 0.13); }
+  html[data-theme="light"] .status-pill-cell.fail { background: rgba(220, 38, 38, 0.10); }
+
+  /* Pagination */
+  .pagination {
+    display: flex; gap: 4px; align-items: center; justify-content: space-between;
+    margin-top: 10px; font-size: 10.5px; color: var(--ink-dim);
+  }
+  .pagination .pages { display: flex; gap: 4px; }
+  .pagination button {
+    background: var(--panel-2); border: 1px solid var(--rule); color: var(--ink-dim);
+    width: 28px; height: 28px; border-radius: 3px; cursor: pointer;
+    font-family: var(--mono); font-size: 11px;
+  }
+  .pagination button:hover { color: var(--ink); border-color: var(--accent); }
+  .pagination button.active {
+    background: var(--panel-3); color: var(--ink);
+    border-color: var(--accent);
+  }
+  .pagination button:disabled {
+    opacity: 0.4; cursor: not-allowed;
+  }
+
+  .table-section-title {
+    font-size: 11.5px; font-weight: 600; color: var(--ink);
+    margin: 14px 0 8px; display: flex; align-items: baseline; gap: 8px;
+  }
+  .table-section-title .sub {
+    color: var(--ink-dim); font-weight: 400; font-size: 10px;
+  }
+
+  /* ── Mendelian sub-tab ─────────────────────────────────────────────────── */
+  .mend-config {
+    background: var(--panel-2); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  .mend-config .row {
+    display: grid; grid-template-columns: 130px 1fr; gap: 12px 14px;
+    align-items: center; margin-bottom: 8px;
+  }
+  .mend-config .row:last-child { margin-bottom: 0; }
+  .mend-config label {
+    font-size: 10.5px; color: var(--ink-dim);
+    letter-spacing: 0.04em;
+  }
+  .mend-config select, .mend-config input[type="text"] {
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 5px 9px; font-family: var(--mono); font-size: 10.5px;
+    width: 100%;
+  }
+  .mend-config select:focus, .mend-config input[type="text"]:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .mend-config .actions {
+    display: flex; gap: 8px; margin-top: 4px;
+  }
+  .mend-config button {
+    background: var(--panel-3); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 5px 14px; font-family: var(--mono); font-size: 10.5px;
+    cursor: pointer; letter-spacing: 0.04em;
+  }
+  .mend-config button.primary {
+    background: var(--accent); color: white; border-color: var(--accent);
+  }
+  html[data-theme="light"] .mend-config button.primary { color: white; }
+  .mend-config button.primary:hover { filter: brightness(1.08); }
+  .mend-config button:hover { border-color: var(--accent); }
+
+  .mend-summary {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px; margin-bottom: 14px;
+  }
+  .mend-summary-cell {
+    background: var(--panel-2); border: 1px solid var(--rule);
+    border-radius: 3px; padding: 8px 12px;
+  }
+  .mend-summary-cell .lbl {
+    font-size: 9px; color: var(--ink-dim);
+    letter-spacing: 0.05em; text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .mend-summary-cell .val {
+    font-size: 14px; font-weight: 600; color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .mend-summary-cell .sub {
+    font-size: 9.5px; color: var(--ink-dim); margin-top: 2px;
+  }
+
+  /* ── Inversion-row support-tier styling ───────────────────────────────── */
+  /* Each inversion row carries a tier from the four-stage scoring pass.
+     Tiers map to CSS classes added to the <tr>:
+        .tier-strong        → ruby aura (deep red shimmer; pass_frac ≥ 0.90)
+        .tier-drive         → diamond aura (prismatic; meiotic-drive candidate)
+        .tier-skew          → amber pulse (transmission distortion, fewer families)
+        .tier-moderate      → quiet warm tint
+        .tier-warn-family   → muted yellow border (suspect family annotation)
+        .tier-conflict      → red border (real local Mendelian conflict)
+        .tier-needs-crosses → black "?" badge (insufficient data for verdict)
+        .tier-weak          → no decoration (default)
+     The aura intensity is set inline via --aura-intensity (0..1) so the
+     glow scales with evidence strength — small evidence = small aura,
+     overwhelming evidence = full aura. */
+  .data-table tbody tr.clickable { cursor: pointer; }
+  .data-table tbody tr.clickable.expanded { background: var(--panel-3); }
+
+  /* ─── STRONG TIER — ruby aura ───────────────────────────────────────── */
+  .data-table tbody tr.tier-strong {
+    /* Ruby red shimmer. Multi-stop gradient with animated background-position;
+       the box-shadow creates the outer "aura" that scales with pass fraction.
+       The aura pulses by varying both background-position and shadow blur. */
+    --aura: var(--aura-intensity, 0.7);
+    background: linear-gradient(90deg,
+                  rgba(225, 29, 72, 0.05)  0%,
+                  rgba(225, 29, 72, 0.20) 25%,
+                  rgba(244, 63, 94, 0.32) 50%,
+                  rgba(225, 29, 72, 0.20) 75%,
+                  rgba(225, 29, 72, 0.05) 100%);
+    background-size: 220% 100%;
+    background-position: 100% 0;
+    animation: ruby-shimmer 5.0s ease-in-out infinite;
+    border-left: 3px solid #be123c;
+    box-shadow: 0 0 calc(8px * var(--aura)) calc(2px * var(--aura))
+                rgba(225, 29, 72, calc(0.30 * var(--aura))) inset;
+    position: relative;
+  }
+  .data-table tbody tr.tier-strong td:first-child::before {
+    content: "♦";
+    color: #be123c;
+    margin-right: 4px;
+    text-shadow: 0 0 5px rgba(225, 29, 72, 0.55);
+  }
+  html[data-theme="light"] .data-table tbody tr.tier-strong {
+    background: linear-gradient(90deg,
+                  rgba(190, 18, 60, 0.04)   0%,
+                  rgba(225, 29, 72, 0.16)  25%,
+                  rgba(244, 63, 94, 0.28)  50%,
+                  rgba(225, 29, 72, 0.16)  75%,
+                  rgba(190, 18, 60, 0.04) 100%);
+    background-size: 220% 100%;
+    border-left-color: #9f1239;
+    box-shadow: 0 0 calc(8px * var(--aura)) calc(2px * var(--aura))
+                rgba(225, 29, 72, calc(0.22 * var(--aura))) inset;
+  }
+  html[data-theme="light"] .data-table tbody tr.tier-strong td:first-child::before {
+    color: #9f1239;
+    text-shadow: 0 0 4px rgba(225, 29, 72, 0.30);
+  }
+  html[data-theme="academic"] .data-table tbody tr.tier-strong {
+    background: linear-gradient(90deg,
+                  rgba(140, 47, 47, 0.05)   0%,
+                  rgba(140, 47, 47, 0.18)  25%,
+                  rgba(180, 70, 70, 0.28)  50%,
+                  rgba(140, 47, 47, 0.18)  75%,
+                  rgba(140, 47, 47, 0.05) 100%);
+    background-size: 220% 100%;
+    border-left-color: #7a2222;
+    box-shadow: none;
+  }
+  html[data-theme="academic"] .data-table tbody tr.tier-strong td:first-child::before {
+    color: #7a2222; text-shadow: none;
+  }
+  @keyframes ruby-shimmer {
+    0%   { background-position: 100% 0; }
+    50%  { background-position: 0% 0; }
+    100% { background-position: 100% 0; }
+  }
+
+  /* ─── DRIVE TIER — diamond aura (the surprise pick) ─────────────────── */
+  /* Meiotic drive / transmission-distortion candidates. The diamond aura
+     uses a prismatic gradient that cycles through cool spectrum colors,
+     paired with a brighter outer glow that "rotates" via animated
+     background-position offset on a much longer cycle. The ♦♦ prefix is
+     a double-diamond to distinguish from the strong-tier single ♦. */
+  .data-table tbody tr.tier-drive {
+    --aura: var(--aura-intensity, 0.85);
+    background: linear-gradient(120deg,
+                  rgba(165, 243, 252, 0.10)  0%,
+                  rgba(196, 181, 253, 0.30) 18%,
+                  rgba(244, 114, 182, 0.32) 36%,
+                  rgba(253, 230, 138, 0.32) 54%,
+                  rgba(167, 243, 208, 0.32) 72%,
+                  rgba(125, 211, 252, 0.32) 90%,
+                  rgba(165, 243, 252, 0.10) 100%);
+    background-size: 280% 100%;
+    background-position: 100% 0;
+    animation: diamond-prism 7.0s linear infinite;
+    border-left: 3px solid #7c3aed;
+    box-shadow: 0 0 calc(14px * var(--aura)) calc(3px * var(--aura))
+                  rgba(167, 139, 250, calc(0.35 * var(--aura))) inset,
+                0 0 calc(8px * var(--aura))  calc(1px * var(--aura))
+                  rgba(125, 211, 252, calc(0.25 * var(--aura)));
+    position: relative;
+  }
+  .data-table tbody tr.tier-drive td:first-child::before {
+    content: "♦♦";
+    color: #c4b5fd;
+    margin-right: 4px;
+    letter-spacing: -2px;
+    text-shadow: 0 0 6px rgba(196, 181, 253, 0.70),
+                 0 0 12px rgba(125, 211, 252, 0.40);
+  }
+  html[data-theme="light"] .data-table tbody tr.tier-drive {
+    background: linear-gradient(120deg,
+                  rgba(186, 230, 253, 0.10)  0%,
+                  rgba(196, 181, 253, 0.24) 18%,
+                  rgba(244, 114, 182, 0.24) 36%,
+                  rgba(253, 224, 71, 0.24)  54%,
+                  rgba(134, 239, 172, 0.24) 72%,
+                  rgba(125, 211, 252, 0.24) 90%,
+                  rgba(186, 230, 253, 0.10) 100%);
+    background-size: 280% 100%;
+    border-left-color: #6d28d9;
+    box-shadow: 0 0 calc(12px * var(--aura)) calc(2px * var(--aura))
+                  rgba(139, 92, 246, calc(0.25 * var(--aura))) inset;
+  }
+  html[data-theme="light"] .data-table tbody tr.tier-drive td:first-child::before {
+    color: #7c3aed;
+    text-shadow: 0 0 4px rgba(196, 181, 253, 0.60);
+  }
+  html[data-theme="academic"] .data-table tbody tr.tier-drive {
+    background: linear-gradient(120deg,
+                  rgba(140, 100, 160, 0.08)  0%,
+                  rgba(140, 100, 160, 0.20) 50%,
+                  rgba(140, 100, 160, 0.08) 100%);
+    border-left-color: #4c1d95;
+    box-shadow: none;
+  }
+  html[data-theme="academic"] .data-table tbody tr.tier-drive td:first-child::before {
+    color: #4c1d95; text-shadow: none;
+  }
+  @keyframes diamond-prism {
+    0%   { background-position: 100% 0; }
+    100% { background-position: -180% 0; }
+  }
+
+  /* ─── SKEW TIER — amber pulse (transmission distortion, fewer families) ── */
+  .data-table tbody tr.tier-skew {
+    border-left: 3px solid #d97706;
+    background: linear-gradient(90deg,
+                  rgba(217, 119, 6, 0.04)  0%,
+                  rgba(217, 119, 6, 0.16) 50%,
+                  rgba(217, 119, 6, 0.04) 100%);
+    background-size: 220% 100%;
+    animation: amber-pulse 4s ease-in-out infinite;
+  }
+  .data-table tbody tr.tier-skew td:first-child::before {
+    content: "↯";
+    color: #d97706;
+    margin-right: 4px;
+  }
+  @keyframes amber-pulse {
+    0%, 100% { background-position: 100% 0; }
+    50%      { background-position: 0% 0; }
+  }
+
+  /* ─── MODERATE TIER ─────────────────────────────────────────────────── */
+  .data-table tbody tr.tier-moderate {
+    border-left: 3px solid #5fa8d3;
+    background: rgba(95, 168, 211, 0.05);
+  }
+  html[data-theme="light"] .data-table tbody tr.tier-moderate {
+    background: rgba(37, 99, 235, 0.04);
+    border-left-color: #2563eb;
+  }
+
+  /* ─── CONFLICT TIER ──────────────────────────────────────────────────── */
+  .data-table tbody tr.tier-conflict {
+    border-left: 3px solid var(--bad);
+    background: rgba(224, 85, 92, 0.04);
+  }
+
+  /* ─── WARN_FAMILY TIER — muted yellow (suspect family annotation) ───── */
+  .data-table tbody tr.tier-warn-family {
+    border-left: 3px dashed var(--warn);
+    background: rgba(232, 196, 76, 0.03);
+  }
+  .data-table tbody tr.tier-warn-family td:first-child::before {
+    content: "⚐";
+    color: var(--warn);
+    margin-right: 4px;
+  }
+
+  /* ─── NEEDS_CROSSES TIER — black "?" badge (no data) ───────────────── */
+  .data-table tbody tr.tier-needs-crosses {
+    border-left: 3px solid var(--ink);
+    background: var(--panel-2);
+    color: var(--ink-dim);
+  }
+  .data-table tbody tr.tier-needs-crosses td {
+    color: var(--ink-dim);
+  }
+  .data-table tbody tr.tier-needs-crosses td:first-child::before {
+    content: "❓";
+    margin-right: 4px;
+    filter: grayscale(1);
+    color: var(--ink);
+  }
+  html[data-theme="light"] .data-table tbody tr.tier-needs-crosses {
+    background: rgba(75, 85, 99, 0.05);
+  }
+
+  /* Pause animations if user prefers reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .data-table tbody tr.tier-strong,
+    .data-table tbody tr.tier-drive,
+    .data-table tbody tr.tier-skew { animation: none; }
+  }
+
+  /* Support-tier pill (in dedicated column) */
+  .tier-pill {
+    display: inline-block; padding: 2px 8px; border-radius: 2px;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .tier-pill.strong       { background: rgba(225, 29, 72, 0.20); color: #be123c;
+                            border: 1px solid rgba(225, 29, 72, 0.50); }
+  .tier-pill.drive        { background: rgba(167, 139, 250, 0.22); color: #7c3aed;
+                            border: 1px solid rgba(167, 139, 250, 0.55); }
+  .tier-pill.skew         { background: rgba(217, 119, 6, 0.16);  color: #d97706;
+                            border: 1px solid rgba(217, 119, 6, 0.40); }
+  .tier-pill.moderate     { background: rgba(95, 168, 211, 0.14); color: var(--accent-2);
+                            border: 1px solid rgba(95, 168, 211, 0.40); }
+  .tier-pill.weak         { background: var(--panel-3); color: var(--ink-dim);
+                            border: 1px solid var(--rule); }
+  .tier-pill.conflict     { background: rgba(224, 85, 92, 0.14); color: var(--bad);
+                            border: 1px solid rgba(224, 85, 92, 0.40); }
+  .tier-pill.warn-family  { background: rgba(232, 196, 76, 0.14); color: var(--warn);
+                            border: 1px dashed rgba(232, 196, 76, 0.50); }
+  .tier-pill.needs-crosses{ background: var(--panel-3); color: var(--ink);
+                            border: 1px solid var(--ink); }
+  html[data-theme="light"] .tier-pill.strong  { color: #9f1239; }
+  html[data-theme="light"] .tier-pill.drive   { color: #6d28d9; }
+  html[data-theme="academic"] .tier-pill.drive { color: #4c1d95; }
+
+
+  /* Expanded family-roster panel (revealed below clicked row) */
+  .inv-expand-row td {
+    padding: 0 !important;
+    background: var(--bg) !important;
+    border-bottom: 1px solid var(--rule);
+  }
+  .inv-expand-panel {
+    padding: 14px 16px;
+    background: var(--panel-2);
+    border: 1px solid var(--accent);
+    border-radius: 0 0 4px 4px;
+    margin: 0;
+    border-top: 0;
+  }
+  .inv-expand-panel .ie-title {
+    font-size: 12px; font-weight: 600; color: var(--ink);
+    margin-bottom: 4px; letter-spacing: 0.02em;
+  }
+  .inv-expand-panel .ie-subtitle {
+    font-size: 10px; color: var(--ink-dim); margin-bottom: 10px;
+  }
+  .inv-expand-panel .ie-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 6px 10px; margin-bottom: 12px;
+  }
+  .inv-expand-panel .ie-stat {
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 3px; padding: 5px 8px;
+  }
+  .inv-expand-panel .ie-stat .lbl {
+    font-size: 8.5px; color: var(--ink-dim);
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .inv-expand-panel .ie-stat .val {
+    font-size: 13px; font-weight: 600; color: var(--ink);
+    font-variant-numeric: tabular-nums; margin-top: 1px;
+  }
+  .inv-expand-panel .ie-stat .val.pass { color: var(--good); }
+  .inv-expand-panel .ie-stat .val.warn { color: var(--warn); }
+  .inv-expand-panel .ie-stat .val.fail { color: var(--bad); }
+
+  .ie-roster-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 10px; background: var(--panel);
+    border: 1px solid var(--rule); border-radius: 3px;
+    overflow: hidden;
+  }
+  .ie-roster-table th {
+    background: var(--panel-3); color: var(--ink);
+    text-align: left; padding: 5px 9px; font-size: 9px;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    font-weight: 600; border-bottom: 1px solid var(--rule);
+  }
+  .ie-roster-table td {
+    padding: 5px 9px; border-bottom: 1px solid var(--rule);
+    color: var(--ink); vertical-align: middle;
+    font-variant-numeric: tabular-nums;
+  }
+  .ie-roster-table tbody tr:last-child td { border-bottom: none; }
+  .ie-roster-table .karyo-cell {
+    font-family: var(--mono);
+    background: rgba(99, 102, 241, 0.05);
+    padding: 2px 6px; border-radius: 2px;
+    display: inline-block;
+  }
+  .ie-roster-table .karyo-cell.k00 { background: rgba(96, 165, 250, 0.14); }
+  .ie-roster-table .karyo-cell.k01 { background: rgba(94, 197, 153, 0.16); }
+  .ie-roster-table .karyo-cell.k11 { background: rgba(232, 196, 76, 0.22); }
+  .ie-roster-table .karyo-cell.kna { background: rgba(124, 100, 255, 0.10);
+                                      color: var(--ink-dim); font-style: italic; }
+  html[data-theme="light"] .ie-roster-table .karyo-cell.k00 { background: rgba(37, 99, 235, 0.10); }
+  html[data-theme="light"] .ie-roster-table .karyo-cell.k01 { background: rgba(22, 163, 74, 0.12); }
+  html[data-theme="light"] .ie-roster-table .karyo-cell.k11 { background: rgba(202, 138, 4, 0.14); }
+  .ie-roster-table .expected {
+    color: var(--ink-dim); font-size: 9px;
+  }
+  .ie-roster-table .verdict-cell {
+    text-align: center;
+  }
+  .ie-conclusion {
+    margin-top: 12px; padding: 10px 14px;
+    border: 1px solid var(--accent); border-radius: 3px;
+    background: var(--panel);
+    font-size: 11px; color: var(--ink); line-height: 1.5;
+  }
+  .ie-conclusion .verdict {
+    font-weight: 600; font-size: 12px;
+  }
+  .ie-conclusion.tier-strong .verdict        { color: #be123c; }
+  .ie-conclusion.tier-drive .verdict         { color: #7c3aed; }
+  .ie-conclusion.tier-skew .verdict          { color: #d97706; }
+  .ie-conclusion.tier-moderate .verdict      { color: var(--accent-2); }
+  .ie-conclusion.tier-weak .verdict          { color: var(--ink-dim); }
+  .ie-conclusion.tier-conflict .verdict      { color: var(--bad); }
+  .ie-conclusion.tier-warn-family .verdict   { color: var(--warn); }
+  .ie-conclusion.tier-needs-crosses .verdict { color: var(--ink); }
+  html[data-theme="light"] .ie-conclusion.tier-strong .verdict { color: #9f1239; }
+  html[data-theme="light"] .ie-conclusion.tier-drive .verdict  { color: #6d28d9; }
+
+  .ie-actions {
+    display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;
+  }
+  .ie-actions button {
+    background: var(--panel); border: 1px solid var(--rule);
+    color: var(--ink); padding: 4px 10px; border-radius: 3px;
+    font-family: var(--mono); font-size: 10px; cursor: pointer;
+    letter-spacing: 0.04em;
+  }
+  .ie-actions button:hover { border-color: var(--accent); color: var(--accent); }
+  .ie-actions button.primary {
+    background: var(--accent); color: white; border-color: var(--accent);
+  }
+  html[data-theme="academic"] .ie-actions button.primary { color: white; }
+
+  /* ── Compatibility tab styling ───────────────────────────────────────── */
+  .compat-config {
+    background: var(--panel-2); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  .compat-config .row {
+    display: grid; grid-template-columns: 150px 1fr; gap: 12px 14px;
+    align-items: center; margin-bottom: 8px;
+  }
+  .compat-config .row:last-child { margin-bottom: 0; }
+  .compat-config label {
+    font-size: 10.5px; color: var(--ink-dim);
+    letter-spacing: 0.04em;
+  }
+  .compat-config select, .compat-config input {
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 5px 9px; font-family: var(--mono); font-size: 10.5px;
+    width: 100%;
+  }
+  .compat-config select:focus, .compat-config input:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .compat-config .toggle-row {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .compat-toggle {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 10.5px; color: var(--ink-dim); cursor: pointer;
+    user-select: none;
+  }
+  .compat-toggle input[type="checkbox"] {
+    width: 14px; height: 14px; accent-color: var(--accent);
+    cursor: pointer; margin: 0;
+  }
+  .compat-actions {
+    display: flex; gap: 8px; margin-top: 4px;
+  }
+  .compat-actions button {
+    background: var(--panel-3); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 5px 14px; font-family: var(--mono); font-size: 10.5px;
+    cursor: pointer; letter-spacing: 0.04em;
+  }
+  .compat-actions button.primary {
+    background: var(--accent); color: white; border-color: var(--accent);
+  }
+  html[data-theme="light"] .compat-actions button.primary { color: white; }
+  .compat-actions button:hover { border-color: var(--accent); }
+
+  .compat-summary {
+    margin-bottom: 12px; padding: 10px 14px;
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 3px; font-size: 10.5px;
+    color: var(--ink-dim); line-height: 1.55;
+  }
+  .compat-summary b { color: var(--ink); font-weight: 500; }
+
+  /* Sex pill */
+  .sex-pill {
+    display: inline-block; padding: 1px 6px; border-radius: 2px;
+    font-size: 9px; font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .sex-pill.male   { background: rgba(96, 165, 250, 0.18); color: var(--accent-2); }
+  .sex-pill.female { background: rgba(236, 72, 153, 0.16); color: #be185d; }
+  .sex-pill.unk    { background: var(--panel-3); color: var(--ink-dim); }
+
+  /* ── Right column: Inspector / Stats ───────────────────────────────────── */
+  #col-right { overflow: hidden; }
+  #col-right .col-section-body { padding: 10px 14px; }
+
+  .ins-selection {
+    font-size: 10.5px; color: var(--ink-dim);
+    margin-bottom: 8px;
+  }
+  .ins-selection .pair {
+    color: var(--ink); font-weight: 500;
+  }
+  .ins-selection .pair .x {
+    color: var(--ink-dimmer); margin: 0 4px;
+  }
+  .ins-selection .swap-btn {
+    float: right; color: var(--ink-dim); cursor: pointer;
+    background: none; border: none; font-size: 13px;
+    padding: 0 4px;
+  }
+  .ins-selection .swap-btn:hover { color: var(--accent); }
+
+  .ins-stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 6px 16px; font-size: 10.5px;
+    margin-bottom: 12px;
+  }
+  .ins-stat-row { display: contents; }
+  .ins-stat-label {
+    color: var(--ink-dim); font-size: 10.5px;
+  }
+  .ins-stat-value {
+    color: var(--ink); font-variant-numeric: tabular-nums;
+    text-align: right; font-weight: 500;
+  }
+  .ins-stat-value.tag {
+    text-align: right; color: var(--good); font-size: 10px;
+    font-weight: 600;
+  }
+  .ins-stat-value.tag.warn { color: var(--warn); }
+  .ins-stat-value.tag.fail { color: var(--bad); }
+
+  /* PASS/WARN/FAIL counter row */
+  .pass-warn-fail {
+    display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 6px; margin-bottom: 6px;
+  }
+  .pwf-cell {
+    background: var(--panel-2); border: 1px solid var(--rule);
+    border-radius: 3px; padding: 5px 8px; text-align: center;
+  }
+  .pwf-cell .pwf-label {
+    font-size: 9px; letter-spacing: 0.06em;
+    text-transform: uppercase; font-weight: 600;
+    color: var(--ink-dim);
+  }
+  .pwf-cell.pass { border-color: rgba(95, 212, 154, 0.55);
+                   background: rgba(95, 212, 154, 0.07); }
+  .pwf-cell.pass .pwf-label { color: var(--good); }
+  .pwf-cell.warn { border-color: rgba(232, 196, 76, 0.55);
+                   background: rgba(232, 196, 76, 0.08); }
+  .pwf-cell.warn .pwf-label { color: var(--warn); }
+  .pwf-cell.fail { border-color: rgba(224, 85, 92, 0.55);
+                   background: rgba(224, 85, 92, 0.07); }
+  .pwf-cell.fail .pwf-label { color: var(--bad); }
+  .pwf-cell .pwf-value {
+    font-size: 13px; font-weight: 600; color: var(--ink);
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pwf-bar {
+    display: flex; height: 10px; border-radius: 3px;
+    overflow: hidden; margin-bottom: 4px;
+    border: 1px solid var(--rule);
+  }
+  .pwf-bar .pwf-bar-pass { background: var(--good); }
+  .pwf-bar .pwf-bar-warn { background: var(--warn); }
+  .pwf-bar .pwf-bar-fail { background: var(--bad); }
+  .pwf-pcts {
+    display: flex; justify-content: space-between;
+    font-size: 9.5px; color: var(--ink-dim);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Mendelian check sub-panel */
+  .mend-check-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 10px; margin-bottom: 8px;
+  }
+  .mend-check-table th, .mend-check-table td {
+    text-align: left; padding: 4px 6px;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink);
+  }
+  .mend-check-table th {
+    color: var(--ink-dim); font-weight: 600; font-size: 9px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--rule);
+  }
+  .mend-check-table td.num {
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+  .mend-check-detail {
+    margin-top: 8px; background: var(--panel-2);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 8px 10px;
+  }
+  .mend-check-detail-title {
+    font-size: 10px; font-weight: 600; color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .mend-check-detail-grid {
+    display: grid; grid-template-columns: 100px 1fr 1fr 1fr;
+    gap: 4px 8px; font-size: 9.5px;
+  }
+  .mend-check-detail-grid .row { display: contents; }
+  .mend-check-detail-grid .row.header > div {
+    color: var(--ink-dim); font-size: 9px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 3px;
+  }
+  .mend-check-detail-grid > div { padding: 2px 0; }
+  .mend-check-detail-grid > div.field-label {
+    color: var(--ink-dim);
+  }
+  .mend-check-detail-legend {
+    display: flex; gap: 12px; margin-top: 6px;
+    font-size: 9px; color: var(--ink-dim);
+  }
+  .mend-check-detail-legend .dot {
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 50%; margin-right: 4px; vertical-align: middle;
+  }
+  .mend-check-detail-legend .dot.pass { background: var(--good); }
+  .mend-check-detail-legend .dot.warn { background: var(--warn); }
+  .mend-check-detail-legend .dot.fail { background: var(--bad); }
+
+  /* Loaded files list (in inspector panel) */
+  .loaded-files-list {
+    font-size: 10px;
+  }
+  .loaded-files-list .lf-row {
+    display: grid; grid-template-columns: auto 1fr auto;
+    gap: 8px; padding: 4px 0;
+    align-items: center;
+    border-bottom: 1px dashed var(--rule);
+  }
+  .loaded-files-list .lf-row:last-child { border-bottom: none; }
+  .loaded-files-list .lf-icon {
+    width: 14px; text-align: center; color: var(--ink-dim);
+  }
+  .loaded-files-list .lf-path {
+    color: var(--ink); white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; min-width: 0;
+  }
+  .loaded-files-list .lf-status {
+    color: var(--good); font-size: 9px;
+    letter-spacing: 0.04em;
+  }
+  .loaded-files-list .lf-status.unloaded { color: var(--ink-dimmer); }
+  .lf-meta {
+    color: var(--ink-dim); font-size: 9.5px;
+    margin-top: 4px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .lf-meta .reload-btn {
+    background: none; border: 1px solid var(--rule);
+    color: var(--ink-dim); border-radius: 3px;
+    width: 22px; height: 22px; cursor: pointer;
+    font-size: 11px; line-height: 1;
+  }
+  .lf-meta .reload-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ── Footer link to scrubber (matches Population_atlas.html idiom) ─── */
+  footer {
+    padding: 8px 22px; border-top: 1px solid var(--rule);
+    background: var(--panel); flex-shrink: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 10px; color: var(--ink-dim); font-family: var(--mono);
+  }
+  footer a {
+    color: var(--ink-dim); text-decoration: none;
+    border: 1px solid var(--rule); padding: 3px 10px;
+    border-radius: 3px; letter-spacing: 0.04em;
+    transition: color 80ms, border-color 80ms;
+  }
+  footer a:hover { color: var(--ink); border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Relatedness Atlas</h1>
+  <span class="meta" id="headerMeta">Family / Individual evidence hub · 226-sample <i>C. gariepinus</i> hatchery cohort</span>
+
+  <div id="atlasModeIndicator" title="Active atlas — hover to see all five">
+    <button id="atlasActiveBtn"
+            data-atlas-mode="relatedness"
+            title="Currently viewing the Relatedness Atlas. Hover to switch atlases."
+            style="background: rgba(138, 127, 255, 0.18); color: var(--ink);
+                   border: 1px solid rgba(138, 127, 255, 0.55);
+                   border-radius: 3px; padding: 3px 12px;
+                   cursor: pointer; line-height: 1.4;
+                   font-family: var(--mono); font-size: 10.5px;
+                   letter-spacing: 0.04em; white-space: nowrap;">
+      Relatedness Atlas <span style="opacity: 0.6; margin-left: 4px;">▾</span>
+    </button>
+    <div id="atlasDropdown"
+         style="position: absolute; top: 100%; left: 0; right: 0; min-width: 100%;
+                background: var(--panel-2); border: 1px solid var(--rule);
+                border-radius: 0 0 3px 3px; padding: 2px 0;
+                display: none; z-index: 200;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);">
+      <a data-atlas-mode="inversion" data-color="blue"
+         href="../../../Inversion_atlas.html"
+         class="atlas-row"
+         style="display: block; width: 100%; text-align: left; box-sizing: border-box;
+                background: transparent; color: var(--ink-dim);
+                border: none;
+                border-left: 3px solid rgba(64, 144, 220, 0.85);
+                padding: 4px 12px; cursor: pointer; text-decoration: none;
+                font-family: var(--mono); font-size: 10.5px;
+                letter-spacing: 0.04em; white-space: nowrap;">Inversion Atlas →</a>
+      <a data-atlas-mode="diversity" data-color="green"
+         href="../../../Diversity_atlas.html"
+         class="atlas-row"
+         style="display: block; width: 100%; text-align: left; box-sizing: border-box;
+                background: transparent; color: var(--ink-dim);
+                border: none;
+                border-left: 3px solid rgba(72, 200, 120, 0.85);
+                padding: 4px 12px; cursor: pointer; text-decoration: none;
+                font-family: var(--mono); font-size: 10.5px;
+                letter-spacing: 0.04em; white-space: nowrap;">Diversity Atlas →</a>
+      <a data-atlas-mode="genome" data-color="orange"
+         href="../../../Genome_atlas.html"
+         class="atlas-row"
+         style="display: block; width: 100%; text-align: left; box-sizing: border-box;
+                background: transparent; color: var(--ink-dim);
+                border: none;
+                border-left: 3px solid rgba(228, 138, 60, 0.85);
+                padding: 4px 12px; cursor: pointer; text-decoration: none;
+                font-family: var(--mono); font-size: 10.5px;
+                letter-spacing: 0.04em; white-space: nowrap;">Genome Atlas →</a>
+      <a data-atlas-mode="population" data-color="yellow"
+         href="../../../Population_atlas.html"
+         class="atlas-row"
+         style="display: block; width: 100%; text-align: left; box-sizing: border-box;
+                background: transparent; color: var(--ink-dim);
+                border: none;
+                border-left: 3px solid rgba(232, 196, 76, 0.85);
+                padding: 4px 12px; cursor: pointer; text-decoration: none;
+                font-family: var(--mono); font-size: 10.5px;
+                letter-spacing: 0.04em; white-space: nowrap;">Population Atlas →</a>
+    </div>
+  </div>
+
+  <button id="themeToggleBtn" title="Toggle light / dark / academic theme">☀ light</button>
+  <button id="helpBtn" title="About this page">?</button>
+</header>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     Status pill bar — load slots for the four data inputs the Relatedness
+     Atlas consumes:
+       • .res file (ngsRelate output, 23-col)
+       • beagle.gz (cohort genotype likelihoods)
+       • prune file (NAToRA / first-degree pruning, optional)
+       • inversion candidates TSV (from Inversion Atlas)
+     Plus an ancestry palette pill that mirrors the cohort's K=N admixture
+     colors, used as the column color in the Karyotypes table's Ancestry col.
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="pillBar">
+  <div class="pill loaded" id="pillRes" data-pill="res">
+    <div class="pill-label loaded">.res loaded</div>
+    <div class="pill-value">/data/project/population.res</div>
+  </div>
+  <div class="pill loaded" id="pillBeagle" data-pill="beagle">
+    <div class="pill-label">📁 beagle path</div>
+    <div class="pill-value">/data/beagle/beagle.gz</div>
+  </div>
+  <div class="pill loaded" id="pillPrune" data-pill="prune">
+    <div class="pill-label">📋 prune file</div>
+    <div class="pill-value">/data/prune.in</div>
+  </div>
+  <div class="pill loaded" id="pillInv" data-pill="inv">
+    <div class="pill-label">⌗ inversion candidates</div>
+    <div class="pill-value" id="pillInvValue">248</div>
+  </div>
+  <div class="pill loaded" id="pillAncestry" data-pill="ancestry">
+    <div class="pill-label">⌬ ancestry palette</div>
+    <div class="ancestry-dots" id="ancestryDots">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     Breadcrumb row
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="breadcrumb">
+  <span class="home-icon">⌂</span>
+  <a href="#" data-bc="root">Population</a>
+  <span class="sep">›</span>
+  <a href="#" data-bc="family" id="bcFamily">Family 1</a>
+  <span class="sep">›</span>
+  <span class="current" id="bcLeaf">Hub: Ind_001</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     Main 3-column body
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="body">
+
+  <!-- ── Left column: Population Browser + Population Summary ─────────── -->
+  <div class="col" id="col-left">
+    <div class="col-section tree-section">
+      <div class="col-section-header">
+        Population Browser
+        <button class="col-section-toggle" data-toggle-section title="Collapse / expand">⌄</button>
+      </div>
+      <div class="col-section-body">
+        <div class="search">
+          <input type="text" id="treeSearch" placeholder="Search sample…" />
+        </div>
+        <div class="tree" id="popTree">
+          <!-- populated by JS -->
+        </div>
+      </div>
+    </div>
+    <div class="col-section">
+      <div class="col-section-header">
+        Population Summary
+        <button class="col-section-toggle" data-toggle-section title="Collapse / expand">⌄</button>
+      </div>
+      <div class="col-section-body">
+        <div class="pop-summary" id="popSummary">
+          <!-- populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Center column: Family / Individual Evidence Hub ──────────────── -->
+  <div class="col" id="col-center">
+    <div class="center-header">
+      <div class="center-title" id="centerTitle">Family / Individual Evidence Hub</div>
+      <div class="center-actions">
+        <button title="Download" id="actDownload">⤓</button>
+        <button title="Maximize" id="actMaximize">⛶</button>
+        <button title="More" id="actMore">⋯</button>
+      </div>
+    </div>
+    <div id="subTabBar">
+      <button data-subtab="network" class="active">Network</button>
+      <button data-subtab="karyotypes">Karyotypes</button>
+      <button data-subtab="inversions">Inversions</button>
+      <button data-subtab="mendelian">Mendelian</button>
+      <button data-subtab="compatibility">Compatibility</button>
+      <div class="sub-tab-spacer"></div>
+      <div class="chr-filter">
+        <span>Chr filter:</span>
+        <select id="chrFilter">
+          <option value="all">all</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Network sub-page -->
+    <div id="subpage-network" class="subpage active" data-subtab-page>
+      <div id="networkPanel">
+        <svg id="networkSvg" viewBox="0 0 800 360" preserveAspectRatio="xMidYMid meet">
+          <!-- populated by JS -->
+        </svg>
+        <div class="net-legend">
+          <div class="lg-row"><span class="lg-line lg-strong-po"></span><span>strong PO</span></div>
+          <div class="lg-row"><span class="lg-line lg-possible-po"></span><span>possible PO</span></div>
+          <div class="lg-row"><span class="lg-line lg-line dashed lg-ambig"></span><span>ambiguous</span></div>
+          <div class="lg-row"><span class="lg-line lg-line dashed lg-conflict"></span><span>Mendelian conflict</span></div>
+        </div>
+        <div class="net-help">
+          <span style="font-size:11px;">ⓘ</span> Click node to center
+          <br/>Drag to pan
+        </div>
+      </div>
+      <!-- Inline Karyotypes preview, mirroring the mockup's stacked layout: -->
+      <div class="table-section-title" style="margin-top: 18px;">
+        Karyotypes <span class="sub">(genotypes at inversion candidates)</span>
+      </div>
+      <div id="karyoTableSlotInline"></div>
+
+      <div class="table-section-title">Inversion Candidates <span class="sub">(filtered)</span></div>
+      <div id="invTableSlotInline"></div>
+      <div class="pagination" id="invPaginationInline"></div>
+    </div>
+
+    <!-- Karyotypes sub-page (deeper view) -->
+    <div id="subpage-karyotypes" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 8px;">
+        Per-sample genotype calls at every inversion candidate. Use this view to scan ancestry composition alongside genotype patterns. STD/INV labels show only when an inversion span has its named-allele convention defined.
+      </div>
+      <div id="karyoTableSlotFull"></div>
+    </div>
+
+    <!-- Inversions sub-page (deeper view) -->
+    <div id="subpage-inversions" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 8px;">
+        All inversion candidates from the Inversion Atlas. Filter by status, chromosome, length, or notes. Click a row to scope the network panel to that candidate.
+      </div>
+      <div id="invTableSlotFull"></div>
+      <div class="pagination" id="invPaginationFull"></div>
+    </div>
+
+    <!-- Mendelian sub-page — the segregation tester -->
+    <div id="subpage-mendelian" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        Test Mendelian segregation for selected dyads (parent–offspring) or triads (parent₁–parent₂–offspring) at every inversion candidate. Computes observed vs expected karyotype proportions and a P-value (binomial for dyads, multinomial-exact / chi-square for triads).
+      </div>
+
+      <div class="mend-config">
+        <div class="row">
+          <label>Selection mode</label>
+          <select id="mendMode">
+            <option value="dyad">Dyad — parent × offspring (binomial)</option>
+            <option value="triad">Triad — parent₁ × parent₂ → offspring (multinomial)</option>
+            <option value="all_dyads">All dyads in current hub (cohort test)</option>
+            <option value="all_triads">All triads in current hub (cohort test)</option>
+          </select>
+        </div>
+        <div class="row" id="rowParent1">
+          <label id="lblParent1">Parent</label>
+          <select id="mendParent1"></select>
+        </div>
+        <div class="row" id="rowParent2" style="display:none;">
+          <label>Parent 2</label>
+          <select id="mendParent2"></select>
+        </div>
+        <div class="row" id="rowOffspring">
+          <label>Offspring</label>
+          <select id="mendOffspring"></select>
+        </div>
+        <div class="row">
+          <label>Inversion subset</label>
+          <select id="mendInvSubset">
+            <option value="all">All candidates</option>
+            <option value="status_pass">Status = PASS only</option>
+            <option value="status_warn">Status = WARN only</option>
+            <option value="freq_high">Frequency ≥ 0.10</option>
+            <option value="chrom_only">Current chromosome only</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>P-value threshold</label>
+          <select id="mendAlpha">
+            <option value="0.05">α = 0.05</option>
+            <option value="0.01">α = 0.01</option>
+            <option value="0.001">α = 0.001</option>
+            <option value="bonferroni">Bonferroni-corrected</option>
+          </select>
+        </div>
+        <div class="row">
+          <label></label>
+          <div class="actions">
+            <button class="primary" id="mendRunBtn">Run test</button>
+            <button id="mendResetBtn">Reset</button>
+            <button id="mendExportBtn" title="Download results as TSV">⤓ Export</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mend-summary" id="mendSummary"></div>
+
+      <div id="mendResultSlot"></div>
+    </div>
+
+    <!-- Compatibility sub-page — breeding partner finder -->
+    <div id="subpage-compatibility" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        Find breeding partners that produce a target offspring karyotype at a chosen inversion candidate. Useful for planning reciprocal crosses, fixing a haplotype, or producing diagnostic trios. Sex-aware mode requires the partner to be opposite sex from the focal. Per-chromosome mode lists candidates from one chromosome only.
+      </div>
+
+      <div class="compat-config">
+        <div class="row">
+          <label>Focal individual</label>
+          <select id="compatFocal"></select>
+        </div>
+        <div class="row">
+          <label>Target karyotype</label>
+          <select id="compatTarget">
+            <option value="0/0">0/0 — homozygous reference (STD/STD)</option>
+            <option value="0/1" selected>0/1 — heterozygous (STD/INV)</option>
+            <option value="1/1">1/1 — homozygous inversion (INV/INV)</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Inversion scope</label>
+          <select id="compatInvScope">
+            <option value="single">A single chosen candidate</option>
+            <option value="chrom" selected>All candidates on one chromosome (per-chrom mode)</option>
+            <option value="all">All inversion candidates</option>
+          </select>
+        </div>
+        <div class="row" id="compatSingleRow">
+          <label>Inversion candidate</label>
+          <select id="compatInvSingle"></select>
+        </div>
+        <div class="row" id="compatChromRow">
+          <label>Chromosome</label>
+          <select id="compatChrom"></select>
+        </div>
+        <div class="row">
+          <label>Filters</label>
+          <div class="toggle-row">
+            <label class="compat-toggle">
+              <input type="checkbox" id="compatSexAware" />
+              <span>Sex-aware (require opposite sex)</span>
+            </label>
+            <label class="compat-toggle">
+              <input type="checkbox" id="compatExcludeKin" checked />
+              <span>Exclude close kin (PO/FS)</span>
+            </label>
+            <label class="compat-toggle">
+              <input type="checkbox" id="compatExcludeAmbig" checked />
+              <span>Exclude ambiguous karyotypes</span>
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <label></label>
+          <div class="compat-actions">
+            <button class="primary" id="compatRunBtn">Find compatible partners</button>
+            <button id="compatResetBtn">Reset</button>
+            <button id="compatExportBtn" title="Download as TSV">⤓ Export</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="compatSummary"></div>
+      <div id="compatResultSlot"></div>
+    </div>
+  </div>
+
+  <!-- ── Right column: Inspector / Stats ──────────────────────────────── -->
+  <div class="col" id="col-right">
+    <div class="col-section">
+      <div class="col-section-header">
+        Inspector / Stats
+        <button class="col-section-toggle" data-toggle-section title="Collapse / expand">⌄</button>
+      </div>
+      <div class="col-section-body">
+        <div class="ins-selection">
+          <span style="color: var(--ink-dim);">Selection: </span>
+          <span class="pair" id="insSelection">
+            <span class="ins-pair-a">Ind_001</span>
+            <span class="x">×</span>
+            <span class="ins-pair-b">Ind_044</span>
+          </span>
+          <button class="swap-btn" id="insSwapBtn" title="Swap A ↔ B">⇄</button>
+        </div>
+        <div class="ins-stats-grid" id="insStatsGrid"></div>
+        <div class="pass-warn-fail" id="passWarnFail">
+          <div class="pwf-cell pass"><div class="pwf-label">PASS</div><div class="pwf-value">24</div></div>
+          <div class="pwf-cell warn"><div class="pwf-label">WARN</div><div class="pwf-value">3</div></div>
+          <div class="pwf-cell fail"><div class="pwf-label">FAIL</div><div class="pwf-value">1</div></div>
+          <div class="pwf-cell"><div class="pwf-label">TOTAL</div><div class="pwf-value">28</div></div>
+        </div>
+        <div class="pwf-bar" id="pwfBar">
+          <div class="pwf-bar-pass" style="width: 85.7%;"></div>
+          <div class="pwf-bar-warn" style="width: 10.7%;"></div>
+          <div class="pwf-bar-fail" style="width: 3.6%;"></div>
+        </div>
+        <div class="pwf-pcts" id="pwfPcts">
+          <span>85.7%</span><span>10.7%</span><span>3.6%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-section">
+      <div class="col-section-header">
+        Mendelian check <span style="color: var(--ink-dim); font-weight: 400; margin-left: 4px;" id="mendCheckPair">(Ind_001 × Ind_044)</span>
+        <button class="col-section-toggle" data-toggle-section title="Collapse / expand">⌄</button>
+      </div>
+      <div class="col-section-body">
+        <table class="mend-check-table" id="mendCheckTable">
+          <thead>
+            <tr>
+              <th>Chromosome</th>
+              <th>Status</th>
+              <th class="num">Conflicts</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot>
+            <tr>
+              <td><strong>Total</strong></td>
+              <td></td>
+              <td class="num"><strong id="mendCheckTotal">7</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="mend-check-detail" id="mendCheckDetail">
+          <div class="mend-check-detail-title" id="mendCheckDetailTitle">INV_001 (Chr28)</div>
+          <div class="mend-check-detail-grid">
+            <div class="row header">
+              <div></div>
+              <div>Parent 1<br/>Ind_001</div>
+              <div>Parent 2<br/>Ind_044</div>
+              <div>Offspring<br/>Ind_087</div>
+            </div>
+            <div class="row">
+              <div class="field-label">Karyotype</div>
+              <div>0/1</div>
+              <div>0/1</div>
+              <div>0/1</div>
+            </div>
+            <div class="row">
+              <div class="field-label">Expected</div>
+              <div>0/0 or 0/1<br/>or 1/1</div>
+              <div>0/0 or 0/1<br/>or 1/1</div>
+              <div>0/0 or 0/1<br/>or 1/1</div>
+            </div>
+            <div class="row">
+              <div class="field-label">Observed</div>
+              <div>0/1</div>
+              <div>0/1</div>
+              <div>0/1</div>
+            </div>
+            <div class="row">
+              <div class="field-label">Result</div>
+              <div><span class="status-pill-cell pass">PASS</span></div>
+              <div><span class="status-pill-cell pass">PASS</span></div>
+              <div><span class="status-pill-cell pass">PASS</span></div>
+            </div>
+          </div>
+          <div class="mend-check-detail-legend">
+            <span><span class="dot pass"></span>PASS: consistent</span>
+            <span><span class="dot warn"></span>WARN: minor conflicts</span>
+            <span><span class="dot fail"></span>FAIL: severe conflicts</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-section">
+      <div class="col-section-header">
+        Loaded files
+        <button class="col-section-toggle" data-toggle-section title="Collapse / expand">⌄</button>
+      </div>
+      <div class="col-section-body">
+        <div class="loaded-files-list" id="loadedFilesList">
+          <!-- populated by JS -->
+        </div>
+        <div class="lf-meta">
+          <span id="loadedAt">Loaded: May 20, 2026  10:32:18</span>
+          <button class="reload-btn" id="reloadBtn" title="Reload all">↻</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>Relatedness Atlas v0.1 · ngsPedigree pages/ · Family/Individual Evidence Hub</span>
+  <a href="../../../scrubber.html" id="scrubberLink">→ scrubber</a>
+</footer>
+
+<!-- The page logic lives in a sibling .js file as the user requested. -->
+<script src="Relatedness_atlas.js"></script>
+</body>
+</html>

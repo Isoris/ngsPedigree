@@ -1,0 +1,14 @@
+sample_id	expected_hub_type	expected_role
+CGA001	two_parents_with_sibship	parent_a
+CGA002	two_parents_with_sibship	parent_b
+CGA003	two_parents_with_sibship	possible_offspring
+CGA004	two_parents_with_sibship	possible_offspring
+CGA005	two_parents_with_sibship	possible_offspring
+CGA006	parent_with_sibship	forced_parent
+CGA007	parent_with_sibship	possible_offspring
+CGA008	parent_with_sibship	possible_offspring
+CGA009	parent_with_sibship	possible_offspring
+CGA010	sibship_only	possible_full_sib
+CGA011	sibship_only	possible_full_sib
+CGA012	duplicate_pair	duplicate
+CGA013	duplicate_pair	duplicate
