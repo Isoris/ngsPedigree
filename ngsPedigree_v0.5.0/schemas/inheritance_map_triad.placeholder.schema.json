@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "inheritance_map_triad.placeholder",
+  "description": "Placeholder for the Stage 3 triad inheritance-map output. Locked to SPEC_HPP.md §3.2. Swap target when Stage 3 ships.",
+  "type": "object",
+  "required": ["columns", "rows"],
+  "properties": {
+    "format": {"const": "tsv"},
+    "columns": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {"const": "triad_id"},
+          {"const": "paternal_sample_id"},
+          {"const": "maternal_sample_id"},
+          {"const": "offspring_sample_id"},
+          {"const": "chrom"},
+          {"const": "seg_start"},
+          {"const": "seg_end"},
+          {"const": "paternal_hap_inherited"},
+          {"const": "maternal_hap_inherited"},
+          {"const": "segment_confidence"},
+          {"const": "recomb_event_left"},
+          {"const": "recomb_event_right"},
+          {"const": "n_informative_markers"},
+          {"const": "notes"}
+        ]
+      }
+    },
+    "types": {
+      "triad_id": {"type": "string"},
+      "paternal_sample_id": {"type": "string"},
+      "maternal_sample_id": {"type": "string"},
+      "offspring_sample_id": {"type": "string"},
+      "chrom": {"type": "string"},
+      "seg_start": {"type": "integer", "minimum": 0},
+      "seg_end": {"type": "integer", "minimum": 0},
+      "paternal_hap_inherited": {"enum": ["1", "2", "ambiguous"]},
+      "maternal_hap_inherited": {"enum": ["1", "2", "ambiguous"]},
+      "segment_confidence": {"enum": ["Gold", "Silver", "Bronze"]},
+      "recomb_event_left": {"type": "boolean"},
+      "recomb_event_right": {"type": "boolean"},
+      "n_informative_markers": {"type": "integer", "minimum": 0},
+      "notes": {"type": "string"}
+    }
+  }
+}

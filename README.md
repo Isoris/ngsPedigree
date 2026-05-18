@@ -33,6 +33,11 @@ Stage 3 — STEP_PED_03_inheritance_map.py            [TODO next session]
             per-window microhaplotype state for confirmed PO pairs
         │
         ▼
+Stage 4 — HPP: Haplotype Projection from Pedigree   [SPEC + MVP 1; ngsPedigree_v0.5.0/]
+            per-offspring, per-segment, haplotype-resolved
+            consequence-annotated variant projection
+        │
+        ▼
 ngsTracts (NCO/DCO calling)                         [separate repo, downstream]
 ```
 
@@ -232,6 +237,13 @@ Runs three suites, 108 assertions total, all on synthetic data:
   and sex-aware reciprocal crosses for distinguishing maternal vs
   paternal drive.
 - v0.5.0 (TODO): Stage 3 chromosome inheritance map from Beagle dosages.
+- v0.5.0/ (this session): HPP (Stage 4) SPEC + MVP 1 staged under
+  `ngsPedigree_v0.5.0/` — placeholder Stage 3 loader + parental haplotype
+  builder + synthetic dyad/triad fixtures. SPEC ONLY beyond MVP 1;
+  awaiting Stage 3 schema lock and audit. See `docs/hpp/HANDOFF.md` and
+  `ngsPedigree_v0.5.0/SPEC_HPP.md`. Note: version-number reconciliation
+  between the planned Stage-3 (was v0.5.0) and HPP-Stage-4
+  (HANDOFF proposes v0.5.0) is deferred to the project owner.
 
 ## Provenance
 
