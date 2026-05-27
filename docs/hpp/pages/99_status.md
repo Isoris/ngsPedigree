@@ -2,14 +2,24 @@
 
 ## MVP roadmap
 
-| MVP | Scope | Built in this session? | Blocker |
+| MVP | Scope | Built? | Blocker |
 |---|---|---|---|
 | 1 | Stage 3 placeholder loader + parental haplotype builder + synthetic fixture | **yes** | — |
 | 2 | Dyad + triad projection → Table A | **yes** (synthetic-fixture path; real joint-VCF adapter still MVP 2b) | — |
-| 3 | Per-gene status → Table B | no | — |
-| 4 | Triad Mendelian + transmission summaries → Tables C, D | partial (triad projection done; Mendelian + rollup pending) | — |
+| 3 | Per-gene status → Table B | **yes** | — |
+| 4 | Mendelian check + dyad/triad transmission summaries → Tables C, D | **yes** | — |
 | 5 | KBC cross-check → Table E | no | KBC must ship in `catfish-variant-analysis` |
 | 6 | Swap `stage3_placeholder` → `stage3_real` | no | ngsPedigree Stage 3 (v0.4.0 roadmap) |
+| 2b | Real joint-VCF adapter (cyvcf2/pysam) + dyad-other-parent deduction | no | env / cohort access |
+
+End-to-end pipeline runnable now via:
+
+```
+python ngsPedigree_v0.5.0/scripts/04_run_hpp_pipeline.py --help
+```
+
+against either fixture; emits Tables A + B + (C or D) TSVs that
+validate against the schemas.
 
 ## Built in this session
 
