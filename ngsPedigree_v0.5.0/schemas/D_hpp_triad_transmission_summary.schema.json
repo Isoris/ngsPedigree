@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "hpp_triad_transmission_summary",
+  "title": "HPP Table D — per-triad transmission summary",
+  "description": "SPEC_HPP.md §4.D. Triads have full Mendelian coverage at every site where both parents have called genotypes; n_de_novo_candidates is a flag, not a claim.",
+  "type": "object",
+  "required": ["format", "columns", "types"],
+  "properties": {
+    "format": {"const": "tsv"},
+    "columns": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "triad_id",
+          "paternal_sample_id",
+          "maternal_sample_id",
+          "offspring_sample_id",
+          "n_segments_total",
+          "n_segments_Gold",
+          "n_segments_Silver",
+          "n_segments_Bronze",
+          "n_damaging_variants_in_paternal",
+          "n_damaging_variants_in_maternal",
+          "n_damaging_variants_transmitted",
+          "n_damaging_variants_resolved",
+          "n_damaging_variants_unresolved",
+          "n_genes_het_masked",
+          "n_genes_hom_exposed_same_variant",
+          "n_genes_compound_het_trans",
+          "n_genes_compound_het_cis",
+          "n_genes_partially_resolved",
+          "mendelian_consistency_status",
+          "mendelian_inconsistent_sites",
+          "mendelian_inconsistent_damaging_sites",
+          "n_de_novo_candidates",
+          "damaging_tier"
+        ]
+      }
+    },
+    "types": {
+      "triad_id":                              {"type": "string"},
+      "paternal_sample_id":                    {"type": "string"},
+      "maternal_sample_id":                    {"type": "string"},
+      "offspring_sample_id":                   {"type": "string"},
+      "n_segments_total":                      {"type": "integer", "minimum": 0},
+      "n_segments_Gold":                       {"type": "integer", "minimum": 0},
+      "n_segments_Silver":                     {"type": "integer", "minimum": 0},
+      "n_segments_Bronze":                     {"type": "integer", "minimum": 0},
+      "n_damaging_variants_in_paternal":       {"type": "integer", "minimum": 0},
+      "n_damaging_variants_in_maternal":       {"type": "integer", "minimum": 0},
+      "n_damaging_variants_transmitted":       {"type": "integer", "minimum": 0},
+      "n_damaging_variants_resolved":          {"type": "integer", "minimum": 0},
+      "n_damaging_variants_unresolved":        {"type": "integer", "minimum": 0},
+      "n_genes_het_masked":                    {"type": "integer", "minimum": 0},
+      "n_genes_hom_exposed_same_variant":      {"type": "integer", "minimum": 0},
+      "n_genes_compound_het_trans":            {"type": "integer", "minimum": 0},
+      "n_genes_compound_het_cis":              {"type": "integer", "minimum": 0},
+      "n_genes_partially_resolved":            {"type": "integer", "minimum": 0},
+      "mendelian_consistency_status":          {"enum": ["pass", "warn", "fail", "untestable"]},
+      "mendelian_inconsistent_sites":          {"type": "integer", "minimum": 0},
+      "mendelian_inconsistent_damaging_sites": {"type": "integer", "minimum": 0, "description": "headline check"},
+      "n_de_novo_candidates":                  {"type": "integer", "minimum": 0, "description": "flag, NOT a claim — sites where offspring carries an allele neither parent carries"},
+      "damaging_tier":                         {"enum": ["T1", "T2", "T3"]}
+    }
+  }
+}
