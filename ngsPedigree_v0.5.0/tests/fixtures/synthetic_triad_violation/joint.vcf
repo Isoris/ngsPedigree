@@ -1,0 +1,8 @@
+##fileformat=VCFv4.2
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##contig=<ID=LG02,length=10000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	P_v_pat	P_v_mat	O_violator
+LG02	100	.	A	T	.	PASS	.	GT	0/0	0/0	0/1
+LG02	200	.	C	G	.	PASS	.	GT	0/0	0/1	1/1
+LG02	300	.	A	T	.	PASS	.	GT	0/1	0/1	0/0
+LG02	400	.	G	C	.	PASS	.	GT	1/1	0/0	0/0

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "hpp_offspring_haplotype_variants",
+  "title": "HPP Table A — offspring × variant × haplotype assignment",
+  "description": "SPEC_HPP.md §4.A. One row per (offspring_sample_id, variant_id, hap_copy). Source layer for downstream gene-status, transmission summary, and KBC cross-check blocs. atlas-core layer_id: hpp_offspring_haplotype_variants.",
+  "type": "object",
+  "required": ["format", "columns", "types"],
+  "properties": {
+    "format": {"const": "tsv"},
+    "columns": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "offspring_sample_id",
+          "relationship_id",
+          "relationship_type",
+          "variant_id",
+          "chrom",
+          "pos",
+          "ref",
+          "alt",
+          "gene_id",
+          "transcript_id",
+          "consequence",
+          "impact",
+          "sift_class",
+          "vesm_llr",
+          "splice_subclass",
+          "hap_copy",
+          "allele_state",
+          "projection_source",
+          "segment_confidence",
+          "confidence"
+        ]
+      }
+    },
+    "types": {
+      "offspring_sample_id": {"type": "string"},
+      "relationship_id":     {"type": "string", "description": "dyad_id or triad_id"},
+      "relationship_type":   {"enum": ["dyad", "triad"]},
+      "variant_id":          {"type": "string", "description": "chrom:pos:ref:alt"},
+      "chrom":               {"type": "string"},
+      "pos":                 {"type": "integer", "minimum": 1},
+      "ref":                 {"type": "string"},
+      "alt":                 {"type": "string"},
+      "gene_id":             {"type": ["string", "null"]},
+      "transcript_id":       {"type": ["string", "null"]},
+      "consequence":         {"type": ["string", "null"], "description": "from variant_master_scored.tsv"},
+      "impact":              {"enum": [null, "LOW", "MODERATE", "HIGH", "MODIFIER"]},
+      "sift_class":          {"type": ["string", "null"]},
+      "vesm_llr":            {"type": ["number", "null"]},
+      "splice_subclass":     {"type": ["string", "null"]},
+      "hap_copy":            {"enum": ["hap_from_P1", "hap_from_P2", "unassigned"]},
+      "allele_state":        {"enum": ["ref", "alt", "unknown"]},
+      "projection_source":   {"enum": ["parent_homozygous", "parent_heterozygous_phased", "parent_heterozygous_unphased"]},
+      "segment_confidence":  {"enum": ["Gold", "Silver", "Bronze"]},
+      "confidence":          {"enum": ["high", "medium", "low", "unresolved"], "description": "composite per SPEC §5"}
+    }
+  }
+}

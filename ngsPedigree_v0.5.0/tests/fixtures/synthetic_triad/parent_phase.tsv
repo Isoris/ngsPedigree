@@ -1,0 +1,5 @@
+parent_sample_id	chrom	pos	ref	alt	parental_hap
+P_pat	LG01	100	A	T	1
+P_pat	LG01	500	C	G	2
+P_mat	LG01	100	A	T	2
+P_mat	LG01	800	T	A	1

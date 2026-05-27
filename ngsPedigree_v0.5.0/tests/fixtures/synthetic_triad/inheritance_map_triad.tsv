@@ -1,0 +1,3 @@
+triad_id	paternal_sample_id	maternal_sample_id	offspring_sample_id	chrom	seg_start	seg_end	paternal_hap_inherited	maternal_hap_inherited	segment_confidence	recomb_event_left	recomb_event_right	n_informative_markers	notes
+triad_T1	P_pat	P_mat	O_T1	LG01	0	1500	1	2	Gold	false	false	55	full Gold span
+triad_T1	P_pat	P_mat	O_T1	LG01	1500	3000	2	ambiguous	Bronze	true	false	7	maternal side unresolved

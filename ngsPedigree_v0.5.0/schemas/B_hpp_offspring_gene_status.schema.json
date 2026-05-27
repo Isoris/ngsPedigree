@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "hpp_offspring_gene_status",
+  "title": "HPP Table B — per (offspring, gene, segment) status",
+  "description": "SPEC_HPP.md §4.B. Manuscript-supplementary headline product. Uses the same seven-class enum as KBC per-gene status but resolved with per-individual exactness up to inheritance-map confidence.",
+  "type": "object",
+  "required": ["format", "columns", "types"],
+  "properties": {
+    "format": {"const": "tsv"},
+    "columns": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "offspring_sample_id",
+          "gene_id",
+          "transcript_id",
+          "chrom",
+          "seg_start",
+          "seg_end",
+          "hap_from_P1_damaging_variants",
+          "hap_from_P2_damaging_variants",
+          "predicted_gene_status",
+          "inside_inversion",
+          "inversion_karyotype_class",
+          "confidence",
+          "damaging_tier"
+        ]
+      }
+    },
+    "types": {
+      "offspring_sample_id":          {"type": "string"},
+      "gene_id":                      {"type": "string"},
+      "transcript_id":                {"type": ["string", "null"]},
+      "chrom":                        {"type": "string"},
+      "seg_start":                    {"type": "integer", "minimum": 0},
+      "seg_end":                      {"type": "integer", "minimum": 0},
+      "hap_from_P1_damaging_variants":{"type": "string", "description": "semicolon-separated variant_ids; empty string if none"},
+      "hap_from_P2_damaging_variants":{"type": "string", "description": "semicolon-separated variant_ids; empty string if none"},
+      "predicted_gene_status": {
+        "enum": [
+          "reference_like",
+          "het_masked",
+          "hom_exposed_same_variant",
+          "compound_het_trans",
+          "compound_het_cis",
+          "partially_resolved",
+          "unresolved"
+        ]
+      },
+      "inside_inversion":             {"type": ["string", "null"], "description": "inversion_id or null"},
+      "inversion_karyotype_class":    {"enum": [null, "AA", "AB", "BB", "NA"]},
+      "confidence":                   {"enum": ["high", "medium", "low", "unresolved"], "description": "min over contributing per-variant confidences"},
+      "damaging_tier":                {"enum": ["T1", "T2", "T3"], "description": "KBC §1.8 damaging-variant tier this gene status was computed under"}
+    }
+  }
+}

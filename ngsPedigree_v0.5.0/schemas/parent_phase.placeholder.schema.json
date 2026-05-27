@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "parent_phase.placeholder",
+  "description": "Placeholder for the per-parent heterozygous-site phase map. HPP HANDOFF.md flags this as the single biggest open question for the Stage 3 schema: where does parent-heterozygous-site phase live in the Stage 3 output? Until that is locked, HPP consumes this sidecar TSV. Rows are only required for sites where the parent is heterozygous; hom sites need no entry. Swap target when Stage 3 ships.",
+  "type": "object",
+  "required": ["columns", "rows"],
+  "properties": {
+    "format": {"const": "tsv"},
+    "columns": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {"const": "parent_sample_id"},
+          {"const": "chrom"},
+          {"const": "pos"},
+          {"const": "ref"},
+          {"const": "alt"},
+          {"const": "parental_hap"}
+        ]
+      }
+    },
+    "types": {
+      "parent_sample_id": {"type": "string"},
+      "chrom": {"type": "string"},
+      "pos": {"type": "integer", "minimum": 1, "description": "1-based, matches VCF"},
+      "ref": {"type": "string"},
+      "alt": {"type": "string"},
+      "parental_hap": {"enum": ["1", "2"], "description": "Which of the parent's two haplotypes carries the ALT allele."}
+    }
+  }
+}

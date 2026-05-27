@@ -1,0 +1,3 @@
+dyad_id	parent_sample_id	offspring_sample_id	chrom	seg_start	seg_end	parental_hap_inherited	segment_confidence	recomb_event_left	recomb_event_right	n_informative_markers	notes
+dyad_PA_OA	P_A	O_A	LG01	0	1000	1	Gold	false	true	42	left flank
+dyad_PA_OA	P_A	O_A	LG01	1000	2000	2	Silver	true	false	19	right flank — post-recomb

@@ -1,0 +1,2 @@
+triad_id	paternal_sample_id	maternal_sample_id	offspring_sample_id	chrom	seg_start	seg_end	paternal_hap_inherited	maternal_hap_inherited	segment_confidence	recomb_event_left	recomb_event_right	n_informative_markers	notes
+triad_violator	P_v_pat	P_v_mat	O_violator	LG02	0	2000	1	2	Gold	false	false	33	deliberate Mendelian-violation fixture

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "hpp_kbc_crosscheck",
+  "title": "HPP Table E — HPP × KBC arrangement cross-check",
+  "description": "SPEC_HPP.md §4.E. Per (variant, offspring, inversion). Discordance is diagnostic only — expected at inversion edges and in Bronze segments; not a failure.",
+  "type": "object",
+  "required": ["format", "columns", "types"],
+  "properties": {
+    "format": {"const": "tsv"},
+    "columns": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "variant_id",
+          "inversion_id",
+          "offspring_sample_id",
+          "pod_segment",
+          "hpp_hap_assignment",
+          "kbc_arrangement_background",
+          "offspring_karyotype_class",
+          "concordant",
+          "confidence",
+          "damaging_tier"
+        ]
+      }
+    },
+    "types": {
+      "variant_id":                 {"type": "string"},
+      "inversion_id":               {"type": "string"},
+      "offspring_sample_id":        {"type": "string"},
+      "pod_segment":                {"enum": ["L", "M", "R", "whole"]},
+      "hpp_hap_assignment":         {"enum": ["A", "B", "unassigned"]},
+      "kbc_arrangement_background": {"enum": ["A_private", "B_private", "shared", "unassigned"]},
+      "offspring_karyotype_class":  {"enum": ["AA", "AB", "BB", "NA"]},
+      "concordant":                 {"type": "boolean"},
+      "confidence":                 {"enum": ["high", "medium", "low", "unresolved"], "description": "min(HPP segment_confidence, KBC assignment_confidence)"},
+      "damaging_tier":              {"enum": ["T1", "T2", "T3"]}
+    }
+  }
+}

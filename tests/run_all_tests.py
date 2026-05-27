@@ -14,6 +14,8 @@ SUITES = [
      HERE / "synthetic_226_realistic" / "run_tests_226.py"),
     ("Stage 2 — per-chromosome QC (30-chrom fixture)",
      HERE / "synthetic_per_chrom" / "run_tests_stage2.py"),
+    ("Stage 4 — HPP v0.5.0 (MVP 1 + adapters)",
+     HERE.parent / "ngsPedigree_v0.5.0" / "tests" / "run_tests.py"),
 ]
 
 print("=" * 70)
