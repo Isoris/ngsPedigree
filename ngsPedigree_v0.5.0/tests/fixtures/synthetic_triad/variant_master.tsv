@@ -1,0 +1,5 @@
+variant_id	gene_id	transcript_id	consequence	impact	sift_class	vesm_llr	splice_subclass
+LG01:100:A:T	G1	T1	stop_gained	HIGH
+LG01:300:G:C	G3	T3	missense_variant	MODERATE	deleterious	-8.5
+LG01:500:C:G	G5	T5	frameshift_variant	HIGH
+LG01:800:T:A	G8	T8	synonymous_variant	LOW	tolerated	-0.8

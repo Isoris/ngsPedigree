@@ -27,6 +27,10 @@ def main() -> int:
     print(f"tests run: {result.testsRun}")
     print(f"failures : {len(result.failures)}")
     print(f"errors   : {len(result.errors)}")
+    # Sentinel line picked up by ../tests/run_all_tests.py
+    n_fail = len(result.failures) + len(result.errors)
+    n_pass = result.testsRun - n_fail
+    print(f"Results: {n_pass} PASS, {n_fail} FAIL  (of {result.testsRun} assertions)")
     return 0 if result.wasSuccessful() else 1
 
 

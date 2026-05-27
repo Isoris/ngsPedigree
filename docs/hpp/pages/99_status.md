@@ -5,9 +5,9 @@
 | MVP | Scope | Built in this session? | Blocker |
 |---|---|---|---|
 | 1 | Stage 3 placeholder loader + parental haplotype builder + synthetic fixture | **yes** | — |
-| 2 | Dyad projection → Table A (real joint-VCF adapter) | no | — |
-| 3 | Per-gene status → Table B | no | MVP 2 |
-| 4 | Triad projection + Mendelian → Tables C, D | no | MVP 2 |
+| 2 | Dyad + triad projection → Table A | **yes** (synthetic-fixture path; real joint-VCF adapter still MVP 2b) | — |
+| 3 | Per-gene status → Table B | no | — |
+| 4 | Triad Mendelian + transmission summaries → Tables C, D | partial (triad projection done; Mendelian + rollup pending) | — |
 | 5 | KBC cross-check → Table E | no | KBC must ship in `catfish-variant-analysis` |
 | 6 | Swap `stage3_placeholder` → `stage3_real` | no | ngsPedigree Stage 3 (v0.4.0 roadmap) |
 

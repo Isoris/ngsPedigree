@@ -55,16 +55,19 @@ else:
         confidence = 'unresolved'
 ```
 
-## What MVP 1 has implemented
+## What's built
 
-- `src/hpp/parental_haps.build_parental_hap_variants()` — step 1 above.
-- Synthetic dyad + triad fixtures with EXPECTED.md known-truth.
+- `src/hpp/parental_haps.build_parental_hap_variants()` — step 1 (MVP 1).
+- `src/hpp/project.project_dyad_to_offspring()` and `project_triad_to_offspring()` — steps 2–4 (MVP 2).
+- `composite_confidence()` — SPEC §5 rule, fully tested.
+- `TableARow` dataclass — column list verified to match `A_hpp_offspring_haplotype_variants.schema.json`.
+- TSV emission via `io.write_tsv` on `TABLE_A_COLUMNS`.
+- Synthetic dyad (4 expected rows at T1) + synthetic triad (5 expected rows at T1) fixtures with EXPECTED_TABLE_A.md known-truth.
 
-## What's NOT built yet (MVP 2)
+## What's NOT built yet (MVP 2b)
 
-- Step 2–4: actual projection into Table A.
-- Real joint-VCF adapter (`vcf_lite` is synthetic-fixture only).
-- Output TSV writer wired through `io.write_tsv` against the Table A schema.
+- Real joint-VCF adapter (`vcf_lite` remains synthetic-fixture only).
+- Dyad's unknown-parent side (offspring's hap-from-other-parent) — currently left unrepresented, not deduced from offspring GT.
 
 ## Open questions
 
