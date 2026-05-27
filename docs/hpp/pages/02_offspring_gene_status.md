@@ -6,7 +6,7 @@
 | **module** | `ngspedigree_hpp` |
 | **produces** | `hpp_offspring_gene_status` (Table B) |
 | **schema** | `ngsPedigree_v0.5.0/schemas/B_hpp_offspring_gene_status.schema.json` |
-| **MVP** | 3 |
+| **MVP** | 3 — **built** |
 
 ## Goal
 
@@ -54,11 +54,18 @@ Per gene-status row: the **minimum** confidence over all per-variant
 rows feeding into either copy. Conservative by design — a single
 Bronze segment downgrades the entire gene classification.
 
-## What's NOT built yet (MVP 3)
+## What's built
 
-Everything. Algorithm is in `SPEC_HPP.md` §10.3 pseudocode; adapter
-hooks exist in `src/hpp/io.py`; the classifier function will land at
-`src/hpp/gene_status.py`.
+- `src/hpp/gene_status.classify_gene_status()` — groups Table A rows by
+  (offspring, gene, segment), partitions by `hap_copy` + `allele_state`,
+  applies the seven-class rule.
+- `_classify(d1, d2, unresolved)` — pure rule; all 7 enum cases unit-tested.
+- `TableBRow` dataclass — column list verified equal to schema B.
+- Confidence aggregation = worst-of over contributing rows (SPEC §5).
+  Synonymous-only groups still propagate worst confidence.
+- Segment lookup re-derived from `chrom + pos` against the inheritance
+  map (segments aren't carried on Table A per spec).
+- Real-fixture coverage on dyad and triad fixtures at T1 and T3.
 
 ## Open questions
 

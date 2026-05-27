@@ -6,7 +6,7 @@
 | **module** | `ngspedigree_hpp` |
 | **produces** | `hpp_transmission_summary` (Tables C + D unified) |
 | **schemas** | `C_hpp_dyad_transmission_summary.schema.json` and `D_hpp_triad_transmission_summary.schema.json` |
-| **MVP** | 4 |
+| **MVP** | 4 — **built** |
 
 ## Goal
 
@@ -43,11 +43,26 @@ Aggregation is strictly per dyad and per triad. The hatchery's
 mixed-family hub structure is a confound for cohort-level work, not a
 unit of analysis. There is no `family_transmission_summary` table.
 
-## What's NOT built yet (MVP 4)
+## What's built
 
-Algorithm in `SPEC_HPP.md` §10.4 pseudocode; output writer hooks in
-`src/hpp/io.py`; the summariser will land at `src/hpp/summary.py`
-with the Mendelian check at `src/hpp/mendelian.py`.
+- `src/hpp/mendelian.py` — primitives:
+  - `mendelian_expected_set(gp1, gp2)` Punnett-square enumeration
+  - `triad_consistent(gp1, gp2, go)` full Mendelian check
+  - `offspring_carries_novel_allele(...)` de-novo flag (NOT a claim)
+  - `dyad_partial_consistent(parent_gt, offspring_gt)` parent-hom subset
+  - `status_from_counts(...)` → `pass`/`warn`/`fail`/`untestable`
+    (default thresholds: 0 → pass, 1–2 → warn, ≥3 → fail; HANDOFF
+    open question #5 — calibrate against empirical data later)
+
+- `src/hpp/summary.py` — emits:
+  - `summarise_dyad()` → `TableCRow` (19 cols, matches schema C)
+  - `summarise_triad()` → `TableDRow` (23 cols, matches schema D)
+
+- Real-fixture coverage:
+  - `synthetic_dyad` / `synthetic_triad` exercise the "pass" path.
+  - `synthetic_triad_violation` is a deliberate-violation fixture
+    covering the `fail` status, `inconsistent_damaging_sites`
+    counting under T1 vs T3, and the `n_de_novo_candidates` flag.
 
 ## Open questions
 
