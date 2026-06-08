@@ -62,6 +62,37 @@
         "maternal_pvalue": {"type": ["number", "null"]}
       }
     },
+    "mtdna_validation": {
+      "type": "object",
+      "required": ["supplied"],
+      "properties": {
+        "supplied": {"type": "boolean"},
+        "n_relationships_checked": {"type": "integer", "minimum": 0},
+        "n_compatible": {"type": "integer", "minimum": 0},
+        "n_incompatible": {"type": "integer", "minimum": 0},
+        "n_ambiguous": {"type": "integer", "minimum": 0},
+        "n_triads_excluded": {"type": "integer", "minimum": 0},
+        "n_dyads_excluded": {"type": "integer", "minimum": 0},
+        "hamming_threshold": {"type": "integer", "minimum": 0},
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["mother_sample_id", "offspring_sample_id", "relationship_type", "status"],
+            "properties": {
+              "mother_sample_id": {"type": "string"},
+              "offspring_sample_id": {"type": "string"},
+              "relationship_type": {"enum": ["triad", "maternal_dyad"]},
+              "mother_haplotype": {"type": ["string", "null"]},
+              "offspring_haplotype": {"type": ["string", "null"]},
+              "distance": {"type": ["integer", "null"]},
+              "status": {"enum": ["compatible", "incompatible", "ambiguous"]},
+              "note": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
     "metadata": {"type": "object"}
   }
 }

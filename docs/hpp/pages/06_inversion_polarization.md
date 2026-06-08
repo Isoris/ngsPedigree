@@ -23,6 +23,15 @@ Layer 4: recombination tract calling (marker-level CO/NCO/DCO)
 ngsTracts' job. The hand-off between them is the OUT JSON written by
 this bloc.
 
+## Optional pedigree pre-flight (bloc 07)
+
+When the polarization CLI is run with `--mtdna PATH`, a maternal-lineage
+mtDNA check (bloc 07) runs first; mtDNA-incompatible (mother, offspring)
+pairs are dropped from the dyad/triad input set before any of the
+machinery below executes. The mtDNA check is documented separately on
+page `07_mtdna_maternal_validation.md`. Polarization counts on this
+page assume the input set after any mtDNA filtering has applied.
+
 ## 1. Inputs (IN JSON contract)
 
 `karyotype_calls.in.json` carries:

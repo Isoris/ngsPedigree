@@ -137,11 +137,20 @@ def write_polarized_transmissions(
     transmissions: Sequence[TransmissionCall],
     drive_stats: DriveStats,
     intended_consumer: str = "ngsTracts",
+    mtdna_validation: Optional[Dict] = None,
     extra_metadata: Optional[Dict] = None,
 ) -> Path:
     """Emit the OUT JSON. ngsTracts consumes this and starts its
     marker-level scan using transmitted_arrangement as the phase polarity
-    per (parent, offspring, inversion)."""
+    per (parent, offspring, inversion).
+
+    ``mtdna_validation``, when supplied, records the pre-flight
+    maternal-lineage check that filtered the dyad/triad input set
+    before polarization. Consumers can use it to distinguish nuclear
+    Mendelian failures (visible in ``polarization.incompatible_*``)
+    from maternal-pedigree failures (visible in
+    ``mtdna_validation.checks``).
+    """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -153,6 +162,8 @@ def write_polarized_transmissions(
         "transmissions": [t.to_dict() for t in transmissions],
         "drive_stats": drive_stats.to_dict(),
     }
+    if mtdna_validation is not None:
+        doc["mtdna_validation"] = mtdna_validation
     if extra_metadata:
         doc["metadata"] = extra_metadata
 
