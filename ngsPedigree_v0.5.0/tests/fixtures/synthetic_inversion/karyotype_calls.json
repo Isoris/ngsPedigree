@@ -1,0 +1,31 @@
+{
+  "schema": "ngspedigree_karyotype_calls_in_v1",
+  "inversion_id": "inv_LG01_pod",
+  "polarity_hint": "band_0_is_REF",
+  "karyotype_calls": [
+    {"sample_id": "S001", "band": 0, "confidence": "high"},
+    {"sample_id": "S002", "band": 2, "confidence": "high"},
+    {"sample_id": "S003", "band": 1, "confidence": "high"},
+    {"sample_id": "S004", "band": 1, "confidence": "high"},
+    {"sample_id": "S005", "band": 2, "confidence": "high"},
+    {"sample_id": "S006", "band": 1, "confidence": "high"},
+    {"sample_id": "S007", "band": 2, "confidence": "high"},
+    {"sample_id": "S008", "band": 0, "confidence": "medium"}
+  ],
+  "dyads": [
+    {"parent_sample_id": "S001", "offspring_sample_id": "S003", "parent_sex": "male"},
+    {"parent_sample_id": "S002", "offspring_sample_id": "S003", "parent_sex": "female"},
+    {"parent_sample_id": "S004", "offspring_sample_id": "S006", "parent_sex": "male"},
+    {"parent_sample_id": "S005", "offspring_sample_id": "S006", "parent_sex": "female"},
+    {"parent_sample_id": "S004", "offspring_sample_id": "S007", "parent_sex": "male"},
+    {"parent_sample_id": "S005", "offspring_sample_id": "S007", "parent_sex": "female"},
+    {"parent_sample_id": "S004", "offspring_sample_id": "S008", "parent_sex": "male"},
+    {"parent_sample_id": "S005", "offspring_sample_id": "S008", "parent_sex": "female"}
+  ],
+  "triads": [
+    {"paternal_sample_id": "S001", "maternal_sample_id": "S002", "offspring_sample_id": "S003"},
+    {"paternal_sample_id": "S004", "maternal_sample_id": "S005", "offspring_sample_id": "S006"},
+    {"paternal_sample_id": "S004", "maternal_sample_id": "S005", "offspring_sample_id": "S007"},
+    {"paternal_sample_id": "S004", "maternal_sample_id": "S005", "offspring_sample_id": "S008"}
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "ngspedigree_karyotype_calls_in_v1",
+  "title": "Karyotype-calls IN — ngsPedigree inversion-polarization input",
+  "description": "Per-inversion karyotype band table (band 0/1/2 = lower/middle/upper PC1 cluster) plus pedigree dyads/triads plus a polarity hint. Pedigree-data alone cannot choose polarity; the hint anchors the orientation (typically derived from the reference assembly's arrangement at the inversion).",
+  "type": "object",
+  "required": ["schema", "inversion_id", "polarity_hint", "karyotype_calls"],
+  "properties": {
+    "schema": {"const": "ngspedigree_karyotype_calls_in_v1"},
+    "inversion_id": {"type": "string"},
+    "polarity_hint": {"enum": ["band_0_is_REF", "band_0_is_INV"]},
+    "karyotype_calls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sample_id", "band"],
+        "properties": {
+          "sample_id": {"type": "string"},
+          "band": {"enum": [0, 1, 2]},
+          "confidence": {"enum": ["high", "medium", "low"], "default": "high"}
+        }
+      }
+    },
+    "dyads": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["parent_sample_id", "offspring_sample_id"],
+        "properties": {
+          "parent_sample_id": {"type": "string"},
+          "offspring_sample_id": {"type": "string"},
+          "parent_sex": {"enum": ["male", "female", null]}
+        }
+      }
+    },
+    "triads": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["paternal_sample_id", "maternal_sample_id", "offspring_sample_id"],
+        "properties": {
+          "paternal_sample_id": {"type": "string"},
+          "maternal_sample_id": {"type": "string"},
+          "offspring_sample_id": {"type": "string"}
+        }
+      }
+    }
+  }
+}
