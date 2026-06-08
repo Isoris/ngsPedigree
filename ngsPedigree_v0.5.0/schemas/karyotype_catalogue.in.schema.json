@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "ngspedigree_karyotype_catalogue_v1",
+  "title": "Karyotype-catalogue IN — whole-genome catalogue, registry shape",
+  "description": "JSON wrapping a long-table row list. One row per (chrom, LRR_id, sample_id, karyotype). Karyotype labels HOM1/HET/HOM2 map to PC1 bands 0/1/2. This is the contract the data registry is expected to emit when the inversion catalogue + per-sample karyotype calls become available. Forward-compatible: defined before the registry exists; the loader stays the same when the upstream producer ships.",
+  "type": "object",
+  "required": ["schema", "rows"],
+  "properties": {
+    "schema": {"const": "ngspedigree_karyotype_catalogue_v1"},
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["chrom", "lrr_id", "sample_id", "karyotype"],
+        "properties": {
+          "chrom": {"type": "string"},
+          "lrr_id": {"type": "string"},
+          "sample_id": {"type": "string"},
+          "karyotype": {"enum": ["HOM1", "HET", "HOM2"]},
+          "confidence": {"enum": ["high", "medium", "low"]},
+          "inversion_id": {"type": "string"}
+        }
+      }
+    }
+  }
+}
