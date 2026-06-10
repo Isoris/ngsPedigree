@@ -1,0 +1,17 @@
+{
+  "schema": "ngspedigree_karyotype_catalogue_v1",
+  "rows": [
+    {"chrom": "Chr1", "lrr_id": "LRR_001", "sample_id": "S001", "karyotype": "HOM1"},
+    {"chrom": "Chr1", "lrr_id": "LRR_001", "sample_id": "S002", "karyotype": "HOM2"},
+    {"chrom": "Chr1", "lrr_id": "LRR_001", "sample_id": "S003", "karyotype": "HET"},
+    {"chrom": "Chr1", "lrr_id": "LRR_001", "sample_id": "S004", "karyotype": "HET"},
+
+    {"chrom": "Chr1", "lrr_id": "LRR_002", "sample_id": "S001", "karyotype": "HET",  "confidence": "medium"},
+    {"chrom": "Chr1", "lrr_id": "LRR_002", "sample_id": "S002", "karyotype": "HOM1"},
+    {"chrom": "Chr1", "lrr_id": "LRR_002", "sample_id": "S003", "karyotype": "HOM1"},
+
+    {"chrom": "Chr2", "lrr_id": "LRR_003", "sample_id": "S001", "karyotype": "HOM2"},
+    {"chrom": "Chr2", "lrr_id": "LRR_003", "sample_id": "S002", "karyotype": "HOM2", "inversion_id": "inv_LG02_b"},
+    {"chrom": "Chr2", "lrr_id": "LRR_003", "sample_id": "S004", "karyotype": "HET"}
+  ]
+}

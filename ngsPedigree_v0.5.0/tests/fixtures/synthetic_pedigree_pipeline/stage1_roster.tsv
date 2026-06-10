@@ -1,0 +1,9 @@
+sample_id	hub_id	hub_type	hub_size	possible_role	role_confidence	reason
+S001	H001	two_parents_with_sibship	3	father	high	known_male
+S002	H001	two_parents_with_sibship	3	mother	high	known_female
+S003	H001	two_parents_with_sibship	3	possible_offspring	high	po_to_both_parents
+S004	H002	two_parents_with_sibship	5	parent_a	high	po_to_3_fs_clique
+S005	H002	two_parents_with_sibship	5	parent_b	high	po_to_3_fs_clique
+S006	H002	two_parents_with_sibship	5	possible_offspring	high	po_to_both_parents
+S007	H002	two_parents_with_sibship	5	possible_offspring	high	po_to_both_parents
+S008	H002	two_parents_with_sibship	5	possible_offspring	high	po_to_both_parents

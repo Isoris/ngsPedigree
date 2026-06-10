@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "ngspedigree_polarized_transmissions_v1",
+  "title": "Polarized-transmissions OUT — ngsTracts input",
+  "description": "Per-inversion: chosen polarity (band → REF/INV mapping), per-(parent, offspring) transmitted arrangement, Mendelian drive test against H0=0.5, plus dyad/triad compatibility counts under BOTH orientations (for QC — equal up to per-individual confidence weighting). ngsTracts consumes transmitted_arrangement as the phase polarity for marker-level CO/NCO/DCO scanning over the inversion interval.",
+  "type": "object",
+  "required": ["schema", "intended_consumer", "inversion_id", "polarization", "transmissions", "drive_stats"],
+  "properties": {
+    "schema": {"const": "ngspedigree_polarized_transmissions_v1"},
+    "intended_consumer": {"type": "string"},
+    "inversion_id": {"type": "string"},
+    "polarization": {
+      "type": "object",
+      "required": ["inversion_id", "polarity_hint", "chosen_polarity", "n_samples_called", "band_counts", "dyad_compat", "triad_compat", "polarities_symmetric"],
+      "properties": {
+        "inversion_id": {"type": "string"},
+        "polarity_hint": {"enum": ["band_0_is_REF", "band_0_is_INV"]},
+        "chosen_polarity": {"enum": ["band_0_is_REF", "band_0_is_INV"]},
+        "n_samples_called": {"type": "integer", "minimum": 0},
+        "n_samples_uncalled": {"type": "integer", "minimum": 0},
+        "band_counts": {"type": "object"},
+        "dyad_compat": {"type": "object"},
+        "triad_compat": {"type": "object"},
+        "polarities_symmetric": {"type": "boolean"},
+        "incompatible_dyads": {"type": "array"},
+        "incompatible_triads": {"type": "array"}
+      }
+    },
+    "transmissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["inversion_id", "parent_sample_id", "offspring_sample_id", "parent_arrangement", "offspring_arrangement", "transmitted_arrangement", "relationship_type", "informative_for_drive"],
+        "properties": {
+          "inversion_id": {"type": "string"},
+          "parent_sample_id": {"type": "string"},
+          "offspring_sample_id": {"type": "string"},
+          "parent_arrangement": {"enum": ["HOM_REF", "HET", "HOM_INV"]},
+          "offspring_arrangement": {"enum": ["HOM_REF", "HET", "HOM_INV"]},
+          "transmitted_arrangement": {"enum": ["REF", "INV", "ambiguous", "contradiction"]},
+          "relationship_type": {"enum": ["dyad", "triad"]},
+          "co_parent_arrangement": {"enum": [null, "HOM_REF", "HET", "HOM_INV"]},
+          "parent_sex": {"enum": [null, "male", "female"]},
+          "informative_for_drive": {"type": "boolean"}
+        }
+      }
+    },
+    "drive_stats": {
+      "type": "object",
+      "required": ["n_informative_transmissions", "n_REF_transmitted", "n_INV_transmitted"],
+      "properties": {
+        "n_informative_transmissions": {"type": "integer", "minimum": 0},
+        "n_REF_transmitted": {"type": "integer", "minimum": 0},
+        "n_INV_transmitted": {"type": "integer", "minimum": 0},
+        "INV_transmission_rate": {"type": ["number", "null"]},
+        "binomial_pvalue": {"type": ["number", "null"]},
+        "paternal_n": {"type": "integer", "minimum": 0},
+        "paternal_INV_rate": {"type": ["number", "null"]},
+        "paternal_pvalue": {"type": ["number", "null"]},
+        "maternal_n": {"type": "integer", "minimum": 0},
+        "maternal_INV_rate": {"type": ["number", "null"]},
+        "maternal_pvalue": {"type": ["number", "null"]}
+      }
+    },
+    "mtdna_validation": {
+      "type": "object",
+      "required": ["supplied"],
+      "properties": {
+        "supplied": {"type": "boolean"},
+        "n_relationships_checked": {"type": "integer", "minimum": 0},
+        "n_compatible": {"type": "integer", "minimum": 0},
+        "n_incompatible": {"type": "integer", "minimum": 0},
+        "n_ambiguous": {"type": "integer", "minimum": 0},
+        "n_triads_excluded": {"type": "integer", "minimum": 0},
+        "n_dyads_excluded": {"type": "integer", "minimum": 0},
+        "hamming_threshold": {"type": "integer", "minimum": 0},
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["mother_sample_id", "offspring_sample_id", "relationship_type", "status"],
+            "properties": {
+              "mother_sample_id": {"type": "string"},
+              "offspring_sample_id": {"type": "string"},
+              "relationship_type": {"enum": ["triad", "maternal_dyad"]},
+              "mother_haplotype": {"type": ["string", "null"]},
+              "offspring_haplotype": {"type": ["string", "null"]},
+              "distance": {"type": ["integer", "null"]},
+              "status": {"enum": ["compatible", "incompatible", "ambiguous"]},
+              "note": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "metadata": {"type": "object"}
+  }
+}

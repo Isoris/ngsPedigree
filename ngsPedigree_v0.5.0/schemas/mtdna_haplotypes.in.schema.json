@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "ngspedigree_mtdna_haplotypes_in_v1",
+  "title": "mtDNA-haplotypes IN — ngsPedigree maternal-lineage validator input",
+  "description": "TSV. Required columns: sample_id, mtdna_haplotype. Optional: mtdna_sequence (FASTA-style nucleotide string, equal length across cohort to enable Hamming distance), mtdna_n_sites. The mtDNA check is asymmetric — different haplotype is strong rejection of maternity, identical haplotype is compatible but not unique proof. Used by ngsPedigree as a pre-flight pedigree-validation layer before inversion polarization.",
+  "type": "object",
+  "required": ["format", "columns"],
+  "properties": {
+    "format": {"const": "tsv"},
+    "columns": {
+      "type": "object",
+      "properties": {
+        "required": {
+          "type": "array",
+          "items": {"enum": ["sample_id", "mtdna_haplotype"]}
+        },
+        "optional": {
+          "type": "array",
+          "items": {"enum": ["mtdna_sequence", "mtdna_n_sites"]}
+        }
+      }
+    },
+    "types": {
+      "sample_id": {"type": "string"},
+      "mtdna_haplotype": {"type": "string"},
+      "mtdna_sequence": {"type": "string"},
+      "mtdna_n_sites": {"type": "integer", "minimum": 0}
+    }
+  }
+}

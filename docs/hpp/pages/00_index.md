@@ -19,6 +19,11 @@ state at the limits of the inheritance map's confidence.
 | 03 | [`03_transmission_summary.md`](03_transmission_summary.md) | `transmission_summary` | `hpp_transmission_summary` |
 | 04 | [`04_hpp_kbc_arrangement_crosscheck.md`](04_hpp_kbc_arrangement_crosscheck.md) | `hpp_kbc_arrangement_crosscheck` | `hpp_kbc_crosscheck` |
 | 05 | [`05_hpp_offspring_pipeline.md`](05_hpp_offspring_pipeline.md) | `hpp_offspring_pipeline` (CHAIN) | `hpp_offspring_gene_status` |
+| 06 | [`06_inversion_polarization.md`](06_inversion_polarization.md) | `inversion_polarization` (ngsTracts hand-off) | `polarized_transmissions.out.json` |
+| 07 | [`07_mtdna_maternal_validation.md`](07_mtdna_maternal_validation.md) | `mtdna_maternal_validation` (pedigree pre-flight) | `mtdna_validation` block in OUT JSON |
+| 08 | [`08_backbone_verification.md`](08_backbone_verification.md) | full backbone (ngsRelate `.res` → ngsTracts), verified | — |
+| 09 | [`09_synthetic_panels.md`](09_synthetic_panels.md) | synthetic-panel recovery tests (6 topology mixes) | recovery report |
+| 10 | [`10_karyotype_catalogue.md`](10_karyotype_catalogue.md) | karyotype-catalogue JSON adapter (registry IN) | `KaryotypeCall` list |
 | 10 | [`10_inputs_and_adapters.md`](10_inputs_and_adapters.md) | — | adapter contracts |
 | 20 | [`20_output_schemas.md`](20_output_schemas.md) | — | JSON Schemas A–E |
 | 99 | [`99_status.md`](99_status.md) | — | MVP roadmap + open questions |
