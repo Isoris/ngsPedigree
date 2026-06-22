@@ -13,11 +13,11 @@ THIS_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(THIS_DIR.parent / "src"))
 
 from hpp.viz_data_emitters import (  # noqa: E402
-    _pearson, _power_iteration, _sample_covariance, _dosage_matrix,
-    detect_kin_groups, emit_case_cards, emit_close_kin_groups,
+    _pearson,
+    detect_kin_groups, emit_close_kin_groups,
     emit_edge_class_counts, emit_genome_event_timeline,
     emit_ideogram_segments, emit_kinship_matrix, emit_mating_risk_matrix,
-    emit_pairwise_metrics, emit_pca_coords, emit_pedigree_network,
+    emit_pairwise_metrics, emit_pedigree_network,
     emit_per_chromosome_events,
     jaccard_del,
 )
@@ -235,37 +235,6 @@ class TestPearson(unittest.TestCase):
 
     def test_perfect_negative(self):
         self.assertAlmostEqual(_pearson([1, 2, 3], [3, 2, 1]), -1.0)
-
-
-class TestPowerIteration(unittest.TestCase):
-    def test_top_eigenvector_of_diagonal(self):
-        M = [[5, 0], [0, 1]]
-        v, lam = _power_iteration(M, n_iter=200)
-        self.assertAlmostEqual(abs(v[0]), 1.0, places=4)
-        self.assertAlmostEqual(abs(v[1]), 0.0, places=4)
-        self.assertAlmostEqual(lam, 5.0, places=4)
-
-
-class TestPCAEmitter(unittest.TestCase):
-    def test_two_clear_clusters(self):
-        # 4 samples, 6 DEL markers; samples [A, B] are 0/0 cluster,
-        # samples [C, D] are 1/1 cluster → PC1 should separate them.
-        samples = ["A", "B", "C", "D"]
-        g = {}
-        for i in range(6):
-            g[f"M{i}"] = {"A": "0/0", "B": "0/0",
-                          "C": "1/1", "D": "1/1"}
-        with tempfile.NamedTemporaryFile("w", suffix=".tsv", delete=False) as fh:
-            p = Path(fh.name)
-        try:
-            rows, eigs = emit_pca_coords(samples, g, p, k=1)
-            # PC1 of A and B should have the same sign, C/D the opposite.
-            pc_a = rows[0]["PC1"]
-            pc_d = rows[3]["PC1"]
-            self.assertAlmostEqual(pc_a * pc_d, -abs(pc_a * pc_d),
-                                     places=4)
-        finally:
-            p.unlink()
 
 
 # ----------------------------------------------------------------------

@@ -14,15 +14,24 @@
 | Per-chromosome event summary (CO / NCO / Mendelian errors) | `emit_per_chromosome_events` | `per_chromosome_events.tsv` |
 | Genome-wide event timeline | `emit_genome_event_timeline` | `genome_event_timeline.tsv` |
 | Local LRR view (single inversion zoom) | `emit_local_lrr_view` | `local_lrr_view_<lrr_id>.tsv` |
-| Genotype-likelihood PCA | `emit_pca_coords` | `pca_coords.tsv` |
 | Pairwise kinship matrix ordered by close-kin family | `emit_kinship_matrix` | `kinship_matrix.tsv` |
 | Pair counts by inferred edge class | `emit_edge_class_counts` | `edge_class_counts.tsv` |
 | Pedigree network (nodes + edges) | `emit_pedigree_network` | `pedigree_network_nodes.tsv`, `pedigree_network_edges.tsv` |
 | Pairwise metrics scatter (θ × IBS0 × Jaccard) | `emit_pairwise_metrics` | `pairwise_metrics.tsv` |
 | Mating-risk matrix (♀ × ♂ expected-offspring kinship) | `emit_mating_risk_matrix` | `mating_risk_matrix.tsv` |
 | Close-kin groups summary | `emit_close_kin_groups` | `close_kin_groups.tsv` |
-| Layered resolver workflow log | `emit_layered_resolver_log` | `layered_resolver_log.tsv` |
-| Case cards (per-edge evidence) | `emit_case_cards` | `case_cards.tsv` |
+
+## Deliberately NOT emitted
+
+Figures in the user uploads that do **not** map cleanly to data this
+pipeline produces:
+
+| Figure | Why not |
+|---|---|
+| Genotype-likelihood PCA | needs SNP genotype likelihoods from ANGSD, not DEL genotypes — a DEL-dosage stand-in would be misleading under the same label. |
+| Ancestry / admixture (NGSadmix-style K components) | same — SNP GLs required, not DEL data. |
+| Layered-resolver workflow log | no explicit layered resolver with per-layer counts; the workflow is implicit in the master pipeline. |
+| Case cards | presentational; derivable from `pairwise_metrics.tsv` + `edge_class_counts.tsv` + `mtdna_validation` block. No separate emitter is justified. |
 
 ## Helpers exposed for re-use
 

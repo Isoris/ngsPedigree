@@ -1,18 +1,17 @@
 """
 Bloc 20 — visualization-data emitters.
 
-For every figure in the user-uploaded ngsPedigree manuscript layouts,
-emit the underlying data table(s) so they can be rendered in
-matplotlib / ggplot2 / Cytoscape / whatever is downstream. We do not
-render plots ourselves (no matplotlib in stdlib). The emitter side is
-stdlib-only.
+For every figure in the user-uploaded ngsPedigree manuscript layouts
+**that maps to data we actually produce in this pipeline**, emit the
+underlying data table(s) so they can be rendered in matplotlib /
+ggplot2 / Cytoscape / whatever is downstream. We do not render plots
+ourselves (no matplotlib in stdlib). The emitter side is stdlib-only.
 
 Figures covered + the function that emits its data:
 
   Chromosome-scale inheritance ideograms     emit_ideogram_segments
   Per-chromosome event summary                emit_per_chromosome_events
   Local LRR view                              emit_local_lrr_view
-  Genotype-likelihood PCA (coords)            emit_pca_coords
   Pairwise kinship matrix ordered by family   emit_kinship_matrix
   Pair counts by inferred edge class          emit_edge_class_counts
   Pedigree network (nodes + edges)            emit_pedigree_network
@@ -22,8 +21,20 @@ Figures covered + the function that emits its data:
   Close-kin groups summary                    emit_close_kin_groups
   Genome-wide event timeline (CO / NCO /
    Mendelian errors)                          emit_genome_event_timeline
-  Layered-resolver workflow counts            emit_layered_resolver_log
-  Case cards (per-edge evidence summary)      emit_case_cards
+
+Deliberately NOT included
+-------------------------
+  * Genotype-likelihood PCA — requires SNP genotype likelihoods from
+    ANGSD, not DEL genotypes. A DEL-dosage stand-in would be misleading
+    relative to the user-uploaded figure label.
+  * Layered-resolver workflow log — we do not run an explicit layered
+    resolver with per-layer edge counts; the workflow is implicit in
+    the master pipeline.
+  * Case cards — derivable presentationally from existing tables
+    (pairwise_metrics + edge_class + mtdna_validation); no separate
+    emitter is justified.
+  * Ancestry / admixture (NGSadmix-style K components) — requires SNP
+    genotype likelihoods, not DEL data. Out of scope for this bloc.
 """
 
 from __future__ import annotations
@@ -474,161 +485,3 @@ def emit_local_lrr_view(
     return rows
 
 
-# ----------------------------------------------------------------------
-# 11. Layered-resolver workflow log — for each layer, edge counts.
-# ----------------------------------------------------------------------
-
-
-def emit_layered_resolver_log(layers, out_path):
-    """``layers`` is a list of dicts:
-       [{"layer": "L1_theta", "n_unresolved": N, "median_R": x,
-         "median_R_for_PO": ...}, ...].
-    Re-emitted as a TSV."""
-    cols = sorted({k for L in layers for k in L})
-    rows = list(layers)
-    _write_tsv(out_path, rows, columns=cols)
-    return rows
-
-
-# ----------------------------------------------------------------------
-# 12. Case cards — per-edge evidence card data.
-# ----------------------------------------------------------------------
-
-
-def emit_case_cards(
-    candidate_pairs,                       # iterable of (a, b, theta, IBS0, Jaccard, edge_class)
-    family_by_sample,
-    mt_check_by_pair: Optional[Dict[Tuple[str, str], str]] = None,
-    mendelian_consistency_by_pair: Optional[Dict[Tuple[str, str], str]] = None,
-    out_path=None,
-):
-    mt_check_by_pair = mt_check_by_pair or {}
-    mendelian_consistency_by_pair = mendelian_consistency_by_pair or {}
-    rows = []
-    for a, b, theta, ibs0, jac, cls in candidate_pairs:
-        key = tuple(sorted([a, b]))
-        mt = mt_check_by_pair.get((a, b)) or mt_check_by_pair.get((b, a))
-        me = (mendelian_consistency_by_pair.get((a, b))
-              or mendelian_consistency_by_pair.get((b, a)))
-        rows.append({
-            "sample_a": a, "sample_b": b,
-            "theta": theta, "IBS0": ibs0, "Jaccard": jac,
-            "edge_class_call": cls,
-            "family_a": family_by_sample.get(a, ""),
-            "family_b": family_by_sample.get(b, ""),
-            "mtdna_check": mt or "n/a",
-            "mendelian_check": me or "n/a",
-        })
-    if out_path:
-        _write_tsv(out_path, rows,
-                    columns=["sample_a", "sample_b", "theta", "IBS0",
-                             "Jaccard", "edge_class_call",
-                             "family_a", "family_b",
-                             "mtdna_check", "mendelian_check"])
-    return rows
-
-
-# ----------------------------------------------------------------------
-# 13. PCA — stdlib power-iteration on the sample × sample covariance
-#     matrix of DEL dosages.
-# ----------------------------------------------------------------------
-
-
-def _dosage_matrix(samples, genotype_matrix):
-    """Returns sample × marker dosage matrix, mean-centered per marker."""
-    marker_ids = list(genotype_matrix)
-    X = []
-    for s in samples:
-        row = []
-        for m in marker_ids:
-            d = _gt_to_dosage(genotype_matrix[m].get(s, "./."))
-            row.append(d)
-        X.append(row)
-    # Mean-impute and mean-center per marker.
-    n_samples = len(samples)
-    n_markers = len(marker_ids)
-    for j in range(n_markers):
-        present = [X[i][j] for i in range(n_samples) if X[i][j] is not None]
-        if not present:
-            for i in range(n_samples):
-                X[i][j] = 0.0
-            continue
-        mean_j = sum(present) / len(present)
-        for i in range(n_samples):
-            if X[i][j] is None:
-                X[i][j] = 0.0
-            else:
-                X[i][j] = X[i][j] - mean_j
-    return X
-
-
-def _sample_covariance(X):
-    n = len(X)
-    if n == 0:
-        return []
-    cov = [[0.0] * n for _ in range(n)]
-    for i in range(n):
-        for j in range(i, n):
-            s = sum(X[i][k] * X[j][k] for k in range(len(X[i])))
-            cov[i][j] = s
-            cov[j][i] = s
-    return cov
-
-
-def _power_iteration(M, n_iter=200):
-    n = len(M)
-    # Use a non-uniform starting vector to avoid hitting a null-space
-    # symmetric direction. Small perturbations break the symmetry.
-    v = [1.0 if i == 0 else 1.0 / (i + 2) for i in range(n)]
-    norm = math.sqrt(sum(x * x for x in v))
-    v = [x / norm for x in v] if norm > 0 else [1.0 / math.sqrt(n)] * n
-    for _ in range(n_iter):
-        new_v = [sum(M[i][j] * v[j] for j in range(n)) for i in range(n)]
-        norm = math.sqrt(sum(x * x for x in new_v))
-        if norm == 0:
-            return v, 0.0
-        v = [x / norm for x in new_v]
-    Mv = [sum(M[i][j] * v[j] for j in range(n)) for i in range(n)]
-    lam = sum(v[i] * Mv[i] for i in range(n))
-    return v, lam
-
-
-def _deflate(M, v, lam):
-    n = len(M)
-    return [
-        [M[i][j] - lam * v[i] * v[j] for j in range(n)]
-        for i in range(n)
-    ]
-
-
-def emit_pca_coords(
-    samples, genotype_matrix, out_path, *, k=2,
-    sample_metadata: Optional[Dict[str, Dict]] = None,
-):
-    """Emit per-sample top-k principal component coordinates.
-    Stdlib power-iteration on the sample×sample covariance of DEL
-    dosages. Good enough for cohorts up to ~1k samples."""
-    sample_metadata = sample_metadata or {}
-    X = _dosage_matrix(samples, genotype_matrix)
-    cov = _sample_covariance(X)
-    pcs = []
-    eigs = []
-    M = cov
-    for _ in range(k):
-        v, lam = _power_iteration(M)
-        pcs.append(v)
-        eigs.append(lam)
-        M = _deflate(M, v, lam)
-    rows = []
-    for i, s in enumerate(samples):
-        rec = {"sample_id": s}
-        for p in range(k):
-            rec[f"PC{p+1}"] = pcs[p][i]
-        rec.update(sample_metadata.get(s, {}))
-        rows.append(rec)
-    _write_tsv(out_path, rows,
-                columns=(["sample_id"] + [f"PC{p+1}" for p in range(k)]
-                         + sorted({k for r in rows for k in r
-                                    if k not in {"sample_id"}
-                                    and not k.startswith("PC")})))
-    return rows, eigs
