@@ -1,4 +1,25 @@
 """
+LRR inheritance map (within recombination-suppressed regions).
+
+This is the **inner-level** inheritance map: per-chromosome segment-by-
+segment transmission within a contiguous arrangement haplotype block
+(a candidate inversion / LRR). It tracks the *flow* of REF vs DEL
+allele transmissions along contiguous markers, run-length-encodes
+into segments, and flags candidate recombination break points.
+
+The OTHER inheritance map — chromosome-level, independent-assortment
+— lives in ``chromosome_inheritance.py`` (bloc 19). That module
+operates at the whole-chromosome level and answers: "is this
+candidate parent compatible as a contributor to this whole
+chromosome of the offspring?" Both modules are valid; they answer
+different questions at different scales.
+
+```
+                        |  level         |  unit        |  Pearson at
+  Chromosome inheritance|  whole chrom   |  individual  |  one-pair level
+  LRR inheritance       |  segment       |  population  |  one-pair level inside LRR
+```
+
 Chromosome inheritance map from DEL markers.
 
 Given a confirmed dyad (parent → offspring) or triad (P1+P2 → O) and a

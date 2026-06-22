@@ -221,7 +221,67 @@ forced-parent rule.
 This recovers triads even when individual dyad directions were
 ambiguous, because the triad's structure resolves it.
 
-### 4.7 Chromosome inheritance map (`hpp.del_inheritance`, bloc 12)
+### 4.7 Two inheritance maps — chromosome and LRR (blocs 19 + 12)
+
+**There are TWO inheritance maps. They answer different questions.**
+
+| Map | Level | Module | Pearson at | Question |
+|---|---|---|---|---|
+| Chromosome (bloc 19) | whole chromosome | `chromosome_inheritance.py` | individual / one-pair | "did this parent contribute to this whole chromosome of the offspring?" |
+| LRR (bloc 12) | segment within an LRR | `del_inheritance.py` | individual inside the LRR | "within this recombination-suppressed region, which arrangement haplotype was transmitted at each segment?" |
+
+The chromosome map is the **outer** level (independent chromosomal
+assortment under Mendel's second law). The LRR map is the **inner**
+level (zoomed in inside a recombination-suppressed block where the
+trace is clean because no recombination is breaking it up).
+
+#### 4.7a Chromosome inheritance map (bloc 19)
+
+For each (offspring × candidate parent × chromosome), compute:
+
+- **`compatibility_rate`** — fraction of DEL markers with no
+  opposite-homozygote contradiction. ≈ 1.0 for a real parent;
+  < 1.0 for a non-parent.
+- **`pearson_r`** — Pearson correlation of parent vs offspring DEL
+  dosage on this chromosome. Positive r is the inheritance signal.
+- **`het_inheritance_rate`** — fraction of parent's HET DELs the
+  offspring carries at least one copy of. ≈ 0.5 for a true parent
+  (HET parent transmits the DEL 50% of the time).
+- **`inheritance_support`** ∈ {`rejected`, `ambiguous`, `compatible`,
+  `strong`} — bucket of the above three numbers.
+
+`rejected` means at least one opposite-homozygote contradiction at a
+marker — Mendelian-impossible for a true parent. `strong` means
+Mendelian-clean AND positive Pearson r AND HET transmission near 0.5.
+
+Without phasing, the per-chromosome compatibility score is the
+strongest statement we can make about "this parent contributed to
+this chromosome of this offspring." For a confirmed triad, **both
+parents should score `strong` or `compatible` on every chromosome**.
+
+#### 4.7b LRR inheritance map (bloc 12, what `del_inheritance.py` does)
+
+Walks every chromosome through all DEL markers in order. At each
+marker, determines which parental allele was transmitted (REF or DEL).
+Run-length encodes into segments. Switches between segments are
+candidate recombination break points. Output is segment-by-segment,
+with confidence Gold / Silver / Bronze based on marker density.
+
+Within a recombination-suppressed LRR, the trace is clean (long runs
+of same-allele transmissions). Outside an LRR, the trace switches
+with every recombination event, which is exactly what reveals the
+recombination map.
+
+#### When to use which
+
+- **Use the chromosome map** as a parent-of-origin sanity-check on
+  every confirmed PO pair. It catches uniparental disomy, sample
+  swaps, and half-sibship masquerading as PO.
+- **Use the LRR map** to seed ngsTracts with phase polarity per
+  (parent, offspring, LRR), and to identify candidate recombination
+  break points within recombination-suppressed regions.
+
+#### Walking the LRR map (the `del_inheritance.py` algorithm)
 
 For each triad (or unambiguous dyad), walk every chromosome through
 all the DEL markers in coordinate order. At each marker:
