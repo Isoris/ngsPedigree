@@ -31,6 +31,7 @@ state at the limits of the inheritance map's confidence.
 | 15 | [`15_framework.md`](15_framework.md) | framework summary: 12-step validation chain → blocs | — |
 | 16/17 | [`16_full_pipeline_and_discovery.md`](16_full_pipeline_and_discovery.md) | one-command pipeline + de novo LRR discovery + arrangement-linkage classifier (situation 1) | end-to-end TSV/JSON bundle |
 | 17m | [`17_methods_de_novo_lrr_discovery.md`](17_methods_de_novo_lrr_discovery.md) | **methods deep-dive: how de novo LRR detection works from DEL VCFs alone (no dosage table required)** | — |
+| 18 | [`18_lrr_divergence_comparative.md`](18_lrr_divergence_comparative.md) | cross-LRR comparative test: hom/het ratio + FIS regressed against between-arrangement dXY (situation 1 → genome-wide) | `lrr_comparative_summary.tsv`, `lrr_comparative_regression.tsv` |
 | 10 | [`10_inputs_and_adapters.md`](10_inputs_and_adapters.md) | — | adapter contracts |
 | 20 | [`20_output_schemas.md`](20_output_schemas.md) | — | JSON Schemas A–E |
 | 99 | [`99_status.md`](99_status.md) | — | MVP roadmap + open questions |
