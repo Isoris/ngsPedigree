@@ -26,6 +26,9 @@ state at the limits of the inheritance map's confidence.
 | 10 | [`10_karyotype_catalogue.md`](10_karyotype_catalogue.md) | karyotype-catalogue JSON adapter (registry IN) | `KaryotypeCall` list |
 | 11 | [`11_hemizygous_markers.md`](11_hemizygous_markers.md) | hemizygous DEL markers ("fake trio" direction) | `TriadVerdict` |
 | 12 | [`12_sv_only_pedigree.md`](12_sv_only_pedigree.md) | broke-grad-student pipeline (Delly + Manta → pedigree + chromosome inheritance map) | `inheritance_segments.tsv` |
+| 13 | [`13_lrr_enrichment.md`](13_lrr_enrichment.md) | family-based OR enrichment for candidate LRRs | `lrr_enrichment.tsv` |
+| 14 | [`14_mendelian_segregation.md`](14_mendelian_segregation.md) | per-family × per-LRR Mendelian segregation (steps 7–8) | `family_lrr.tsv`, `lrr_summary.tsv` |
+| 15 | [`15_framework.md`](15_framework.md) | framework summary: 12-step validation chain → blocs | — |
 | 10 | [`10_inputs_and_adapters.md`](10_inputs_and_adapters.md) | — | adapter contracts |
 | 20 | [`20_output_schemas.md`](20_output_schemas.md) | — | JSON Schemas A–E |
 | 99 | [`99_status.md`](99_status.md) | — | MVP roadmap + open questions |
