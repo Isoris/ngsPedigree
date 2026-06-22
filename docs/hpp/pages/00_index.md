@@ -30,6 +30,7 @@ state at the limits of the inheritance map's confidence.
 | 14 | [`14_mendelian_segregation.md`](14_mendelian_segregation.md) | per-family × per-LRR Mendelian segregation (steps 7–8) | `family_lrr.tsv`, `lrr_summary.tsv` |
 | 15 | [`15_framework.md`](15_framework.md) | framework summary: 12-step validation chain → blocs | — |
 | 16/17 | [`16_full_pipeline_and_discovery.md`](16_full_pipeline_and_discovery.md) | one-command pipeline + de novo LRR discovery + arrangement-linkage classifier (situation 1) | end-to-end TSV/JSON bundle |
+| 17m | [`17_methods_de_novo_lrr_discovery.md`](17_methods_de_novo_lrr_discovery.md) | **methods deep-dive: how de novo LRR detection works from DEL VCFs alone (no dosage table required)** | — |
 | 10 | [`10_inputs_and_adapters.md`](10_inputs_and_adapters.md) | — | adapter contracts |
 | 20 | [`20_output_schemas.md`](20_output_schemas.md) | — | JSON Schemas A–E |
 | 99 | [`99_status.md`](99_status.md) | — | MVP roadmap + open questions |
