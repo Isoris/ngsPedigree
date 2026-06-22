@@ -33,6 +33,7 @@ state at the limits of the inheritance map's confidence.
 | 17m | [`17_methods_de_novo_lrr_discovery.md`](17_methods_de_novo_lrr_discovery.md) | **methods deep-dive: how de novo LRR detection works from DEL VCFs alone (no dosage table required)** | — |
 | 18 | [`18_lrr_divergence_comparative.md`](18_lrr_divergence_comparative.md) | cross-LRR comparative test: hom/het ratio + FIS regressed against between-arrangement dXY (situation 1 → genome-wide) | `lrr_comparative_summary.tsv`, `lrr_comparative_regression.tsv` |
 | 19 | [`19_chromosome_inheritance_map.md`](19_chromosome_inheritance_map.md) | **chromosome inheritance map (independent assortment level)** — per (offspring × candidate parent × chromosome) compatibility score. Sibling to the LRR inheritance map. | `chromosome_inheritance_scores.tsv`, `chromosome_best_parent.tsv` |
+| 20 | [`20_visualization_data_emitters.md`](20_visualization_data_emitters.md) | **all figures, all tables** — ideograms, kinship heatmap, pedigree network, θ×IBS0×Jaccard scatter, mating-risk matrix, close-kin groups, PCA, edge-class counts, event timeline, case cards | many TSVs (one per figure) + recipe for each matplotlib render |
 | 10 | [`10_inputs_and_adapters.md`](10_inputs_and_adapters.md) | — | adapter contracts |
 | 20 | [`20_output_schemas.md`](20_output_schemas.md) | — | JSON Schemas A–E |
 | 99 | [`99_status.md`](99_status.md) | — | MVP roadmap + open questions |
