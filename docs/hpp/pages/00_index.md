@@ -24,6 +24,17 @@ state at the limits of the inheritance map's confidence.
 | 08 | [`08_backbone_verification.md`](08_backbone_verification.md) | full backbone (ngsRelate `.res` → ngsTracts), verified | — |
 | 09 | [`09_synthetic_panels.md`](09_synthetic_panels.md) | synthetic-panel recovery tests (6 topology mixes) | recovery report |
 | 10 | [`10_karyotype_catalogue.md`](10_karyotype_catalogue.md) | karyotype-catalogue JSON adapter (registry IN) | `KaryotypeCall` list |
+| 11 | [`11_hemizygous_markers.md`](11_hemizygous_markers.md) | hemizygous DEL markers ("fake trio" direction) | `TriadVerdict` |
+| 12 | [`12_sv_only_pedigree.md`](12_sv_only_pedigree.md) | broke-grad-student pipeline (Delly + Manta → pedigree + chromosome inheritance map) | `inheritance_segments.tsv` |
+| 13 | [`13_lrr_enrichment.md`](13_lrr_enrichment.md) | family-based OR enrichment for candidate LRRs | `lrr_enrichment.tsv` |
+| 14 | [`14_mendelian_segregation.md`](14_mendelian_segregation.md) | per-family × per-LRR Mendelian segregation (steps 7–8) | `family_lrr.tsv`, `lrr_summary.tsv` |
+| 15 | [`15_framework.md`](15_framework.md) | framework summary: 12-step validation chain → blocs | — |
+| 16/17 | [`16_full_pipeline_and_discovery.md`](16_full_pipeline_and_discovery.md) | one-command pipeline + de novo LRR discovery + arrangement-linkage classifier (situation 1) | end-to-end TSV/JSON bundle |
+| 17m | [`17_methods_de_novo_lrr_discovery.md`](17_methods_de_novo_lrr_discovery.md) | **methods deep-dive: how de novo LRR detection works from DEL VCFs alone (no dosage table required)** | — |
+| 18 | [`18_lrr_divergence_comparative.md`](18_lrr_divergence_comparative.md) | cross-LRR comparative test: hom/het ratio + FIS regressed against between-arrangement dXY (situation 1 → genome-wide) | `lrr_comparative_summary.tsv`, `lrr_comparative_regression.tsv` |
+| 19 | [`19_chromosome_inheritance_map.md`](19_chromosome_inheritance_map.md) | **chromosome inheritance map (independent assortment level)** — per (offspring × candidate parent × chromosome) compatibility score. Sibling to the LRR inheritance map. | `chromosome_inheritance_scores.tsv`, `chromosome_best_parent.tsv` |
+| 20 | [`20_visualization_data_emitters.md`](20_visualization_data_emitters.md) | **all figures, all tables** — ideograms, kinship heatmap, pedigree network, θ×IBS0×Jaccard scatter, mating-risk matrix, close-kin groups, edge-class counts, event timeline (only emitters that map to actual pipeline outputs) | many TSVs (one per figure) + recipe for each matplotlib render |
+| 21 | [`21_offspring_first_phasing.md`](21_offspring_first_phasing.md) | **offspring-first arrangement phasing** — reverse-segregation marker discovery from a children × variants dosage matrix. Two filter modes (`segregating` + `hemizygous_only`) for side-by-side comparison. | `offspring_phasing.tsv`, `offspring_class_assignments.tsv` |
 | 10 | [`10_inputs_and_adapters.md`](10_inputs_and_adapters.md) | — | adapter contracts |
 | 20 | [`20_output_schemas.md`](20_output_schemas.md) | — | JSON Schemas A–E |
 | 99 | [`99_status.md`](99_status.md) | — | MVP roadmap + open questions |

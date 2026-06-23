@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "ngspedigree_del_markers_v1",
+  "title": "Hemizygous DEL-marker IN — segregating structural-deletion calls per sample",
+  "description": "JSON wrapping a long-table row list. One row per (marker_id, sample_id) pair. Genotype convention: 0/0 = no DEL allele, 0/1 = heterozygous (hemizygous) DEL, 1/1 = homozygous DEL, ./. = missing. SNPs sitting INSIDE common DEL intervals must be masked from SNP-level Mendelian checks (deletion-induced allele dropout will masquerade as homozygous SNP transmission); this contract is for the DEL markers themselves, not SNPs.",
+  "type": "object",
+  "required": ["schema", "rows"],
+  "properties": {
+    "schema": {"const": "ngspedigree_del_markers_v1"},
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["marker_id", "sample_id", "genotype"],
+        "properties": {
+          "marker_id": {"type": "string"},
+          "sample_id": {"type": "string"},
+          "genotype": {"enum": ["0/0", "0/1", "1/1", "./.", "0|0", "0|1", "1|1"]},
+          "chrom":   {"type": "string"},
+          "start":   {"type": "integer", "minimum": 0},
+          "end":     {"type": "integer", "minimum": 0},
+          "depth_ratio": {"type": "number", "minimum": 0},
+          "confidence": {"enum": ["high", "medium", "low"]},
+          "notes":   {"type": "string"}
+        }
+      }
+    }
+  }
+}

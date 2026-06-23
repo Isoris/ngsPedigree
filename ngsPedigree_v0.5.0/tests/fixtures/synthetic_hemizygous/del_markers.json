@@ -1,0 +1,44 @@
+{
+  "schema": "ngspedigree_del_markers_v1",
+  "rows": [
+    {"marker_id": "DEL_001", "sample_id": "P_F",  "genotype": "0/1"},
+    {"marker_id": "DEL_001", "sample_id": "P_M",  "genotype": "0/0"},
+    {"marker_id": "DEL_001", "sample_id": "C",    "genotype": "0/1"},
+
+    {"marker_id": "DEL_002", "sample_id": "P_F",  "genotype": "0/0"},
+    {"marker_id": "DEL_002", "sample_id": "P_M",  "genotype": "0/1"},
+    {"marker_id": "DEL_002", "sample_id": "C",    "genotype": "0/0"},
+
+    {"marker_id": "DEL_003", "sample_id": "P_F",  "genotype": "0/1"},
+    {"marker_id": "DEL_003", "sample_id": "P_M",  "genotype": "0/1"},
+    {"marker_id": "DEL_003", "sample_id": "C",    "genotype": "1/1"},
+
+    {"marker_id": "DEL_004", "sample_id": "P_F",  "genotype": "0/0"},
+    {"marker_id": "DEL_004", "sample_id": "P_M",  "genotype": "0/0"},
+    {"marker_id": "DEL_004", "sample_id": "C",    "genotype": "0/0"},
+
+    {"marker_id": "DEL_005", "sample_id": "P_F",  "genotype": "1/1"},
+    {"marker_id": "DEL_005", "sample_id": "P_M",  "genotype": "0/0"},
+    {"marker_id": "DEL_005", "sample_id": "C",    "genotype": "0/1"},
+
+    {"marker_id": "DEL_006", "sample_id": "P_F",  "genotype": "0/1"},
+    {"marker_id": "DEL_006", "sample_id": "P_M",  "genotype": "1/1"},
+    {"marker_id": "DEL_006", "sample_id": "C",    "genotype": "0/1"},
+
+    {"marker_id": "DEL_007", "sample_id": "P_F",  "genotype": "0/0"},
+    {"marker_id": "DEL_007", "sample_id": "P_M",  "genotype": "0/1"},
+    {"marker_id": "DEL_007", "sample_id": "C",    "genotype": "0/1"},
+
+    {"marker_id": "DEL_008", "sample_id": "P_F",  "genotype": "0/1"},
+    {"marker_id": "DEL_008", "sample_id": "P_M",  "genotype": "0/0"},
+    {"marker_id": "DEL_008", "sample_id": "C",    "genotype": "0/0"},
+
+    {"marker_id": "DEL_009", "sample_id": "P_F",  "genotype": "0/0"},
+    {"marker_id": "DEL_009", "sample_id": "P_M",  "genotype": "0/1"},
+    {"marker_id": "DEL_009", "sample_id": "C",    "genotype": "0/0"},
+
+    {"marker_id": "DEL_010", "sample_id": "P_F",  "genotype": "0/0"},
+    {"marker_id": "DEL_010", "sample_id": "P_M",  "genotype": "0/0"},
+    {"marker_id": "DEL_010", "sample_id": "C",    "genotype": "0/0"}
+  ]
+}
